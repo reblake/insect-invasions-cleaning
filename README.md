@@ -1,3 +1,3 @@
 # example_code
 
-Example code developed for building taxonomic and occurrence tables.  
+Example code developed for insect invasions SESYNC pursuit for building taxonomic and occurrence tables.  
