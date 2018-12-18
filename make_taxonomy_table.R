@@ -122,6 +122,7 @@ get_accepted_taxonomy <- function(taxa_name){
                                        mutate_if(is.logical, as.character) %>% 
                                        dplyr::filter(if(!(status %in% c("ACCEPTED"))) {row_number() == 1} else { 
                                                         status %in% c("ACCEPTED")}) %>%   # filter to accepted names only
+                                       dplyr::filter(xor(any(rank == "species"), rank == "genus")) %>% # filter rank to species if both genus and species
                                        select(-one_of(xtra_cols)) 
  
                              # make df of all taxonomic info from GBIF
@@ -140,8 +141,9 @@ get_accepted_taxonomy <- function(taxa_name){
                              return(tax_gbif)
                              }
                          }
-	
- 
+#####	
+# need to write if else statement for cases when only genus is found for splitting out the authority
+
 
 # apply the function over the vector of species names
 tax_acc_l <- lapply(tax_vec, get_accepted_taxonomy) 
@@ -152,7 +154,7 @@ tax_acc <- tax_acc_l %>%
            purrr::reduce(full_join) %>% 
            filter(kingdom == "Animalia"  | is.na(kingdom), # filter to only kingdom Animalia
                   phylum == "Arthropoda" | is.na(phylum),  # filter to phylum Arthropoda only
-                  !(class %in% c("Malacostraca", "Hexanauplia")))  # filter out other crustaceans
+                  class == "Insecta" | is.na(class))  # filter to only class Insecta
 )
 
 
