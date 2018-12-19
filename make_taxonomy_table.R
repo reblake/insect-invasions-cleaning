@@ -83,15 +83,16 @@ tax_df1 <- tax_df %>%
            bind_rows(seeb_data1) %>% 
            mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE)) %>% 
 
-           # fill in NAs if genus_species is duplicated
-           group_by(genus_species) %>% 
-           mutate(class = recode(class, "Hexapoda" = "Insecta")) %>% # replaces old class name with new
-           fill(everything()) %>% 
-           fill(everything(), .direction = "up") %>% 
-           ungroup() %>%   
-  
-           distinct(genus_species, .keep_all = TRUE) %>%  # remove species duplicates 
-           select(genus_species, everything()) %>%  # reorder columns
+           # # fill in NAs if genus_species is duplicated
+           # group_by(genus_species) %>% 
+           # mutate(class = recode(class, "Hexapoda" = "Insecta")) %>% # replaces old class name with new
+           # fill(everything()) %>% 
+           # fill(everything(), .direction = "up") %>% 
+           # ungroup() %>%   
+           # 
+           #distinct(genus_species, .keep_all = TRUE) %>%  # remove species duplicates 
+           distinct(genus_species) %>%  # remove species duplicates          
+           #select(genus_species, everything()) %>%  # reorder columns
            dplyr::arrange(genus_species) # arrange alphabetically
   
 
@@ -103,6 +104,38 @@ tax_df1 <- tax_df %>%
 tax_vec <- unlist(tax_df1$genus_species, use.names = FALSE)  
 
 # write function(s) to apply over this character vector
+
+######################
+get_raw_taxonomy <- function(taxa_name){
+                    id <- get_gbifid_(taxa_name)  # gets ID from GBIF
+                    
+                    # deal with cases where species name not found
+                    if (nrow(id[[1]]) == 0){data.frame(user_supplied_name = taxa_name,
+                                                       genus_species = "species not found")
+                       } else { 
+                       # puts ID info into one dataframe
+                       tax_id <- map_df(id, ~as.data.frame(.x), .id="user_supplied_name")
+                       }
+                       
+                    return(tax_id)
+                    }
+
+# apply the function over the vector of species names
+tax_raw_l <- lapply(tax_vec, get_raw_taxonomy) 
+
+# make dataframe of all results
+suppressMessages(
+tax_raw <- tax_raw_l %>% 
+           purrr::reduce(full_join) %>% 
+           filter(kingdom == "Animalia"  | is.na(kingdom), # filter to only kingdom Animalia
+                  phylum == "Arthropoda" | is.na(phylum),  # filter to phylum Arthropoda only
+                  class == "Insecta" | is.na(class))  # filter to only class Insecta
+)
+
+# write the raw taxonomy table to a CSV file
+readr::write_csv(tax_raw, "./data/clean_data/taxonomy_raw.csv")
+######################
+
 
 get_accepted_taxonomy <- function(taxa_name){
                          # get taxa ids, authoritative names, and names higher up 
@@ -143,6 +176,7 @@ get_accepted_taxonomy <- function(taxa_name){
                          }
 #####	
 # need to write if else statement for cases when only genus is found for splitting out the authority
+# plot off the date and name for authority.  Keep everything that is not authority as the genus_species
 
 
 # apply the function over the vector of species names
