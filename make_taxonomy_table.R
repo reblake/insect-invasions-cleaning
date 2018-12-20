@@ -145,7 +145,7 @@ get_accepted_taxonomy <- function(taxa_name){
                          if (nrow(id[[1]]) == 0){data.frame(user_supplied_name = taxa_name,
                                                             genus_species = "species not found")
                              } else { 
-                             xtra_cols <- c("rank", "status", "matchtype", "canonicalname", "confidence", "synonym",
+                             xtra_cols <- c("rank", "status", "matchtype", "confidence", "synonym",
                                              "kingdomkey", "phylumkey", "classkey", "orderkey", "specieskey",
                                              "note", "familykey", "genuskey", "acceptedusagekey")
                                
@@ -166,10 +166,9 @@ get_accepted_taxonomy <- function(taxa_name){
                                                                              NA_character_,
                                                                              gsub("^\\w+\\s+\\w+\\s+(.*)", "\\1", scientificname))) %>%
                                          # get genus_species
-                                         mutate(genus_species = ifelse(!exists("species"), paste(genus, "sp"), 
-                                                                       gsub("^((\\w+\\W+){0,1}\\w+).*", "\\1", scientificname)))  %>%
+                                         mutate(genus_species = ifelse(!exists("species"), paste(genus, "sp"), canonicalname))  %>%
                                          mutate(taxonomy_system = "GBIF") %>%
-                                         select(-scientificname) 
+                                         select(-scientificname, -canonicalname) 
 
                              return(tax_gbif)
                              }
@@ -177,7 +176,7 @@ get_accepted_taxonomy <- function(taxa_name){
 #####	
 # need to write if else statement for cases when only genus is found for splitting out the authority
 # plot off the date and name for authority.  Keep everything that is not authority as the genus_species
-
+#gsub("^((\\w+\\W+){0,1}\\w+).*", "\\1", scientificname)  # old code, but keeping for example...
 
 # apply the function over the vector of species names
 tax_acc_l <- lapply(tax_vec, get_accepted_taxonomy) 
