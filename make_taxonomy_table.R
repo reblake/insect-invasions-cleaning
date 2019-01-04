@@ -106,6 +106,7 @@ tax_vec <- unlist(tax_df1$genus_species, use.names = FALSE)
 # write function(s) to apply over this character vector
 
 ######################
+# get raw taxonomic info from GBIF
 get_raw_taxonomy <- function(taxa_name){
                     id <- get_gbifid_(taxa_name)  # gets ID from GBIF
                     
@@ -136,7 +137,8 @@ tax_raw <- tax_raw_l %>%
 readr::write_csv(tax_raw, "./data/clean_data/taxonomy_raw.csv")
 ######################
 
-
+######################
+# get only accepted taxonomic info from GBIF
 get_accepted_taxonomy <- function(taxa_name){
                          # get taxa ids, authoritative names, and names higher up 
                          id <- get_gbifid_(taxa_name)  # gets ID from GBIF
@@ -145,16 +147,23 @@ get_accepted_taxonomy <- function(taxa_name){
                          if (nrow(id[[1]]) == 0){data.frame(user_supplied_name = taxa_name,
                                                             genus_species = "species not found")
                              } else { 
-                             xtra_cols <- c("rank", "status", "matchtype", "confidence", "synonym",
+                             xtra_cols <- c(#"rank", "status", "matchtype", "confidence", "synonym",
                                              "kingdomkey", "phylumkey", "classkey", "orderkey", "specieskey",
                                              "note", "familykey", "genuskey", "acceptedusagekey")
                                
                              # puts ID info into one dataframe
                              tax_id <- map_df(id, ~as.data.frame(.x), .id="user_supplied_name")
-                             id_acc <- tax_id %>%
+                             # filter dataframe for accepted names
+                             id_acc <- tax_id %>% 
                                        mutate_if(is.logical, as.character) %>% 
+                                       dplyr::filter(kingdom == "Animalia"  | is.na(kingdom)) %>%  # filter to kingdom Animalia
+                                       dplyr::filter(if(!("phylum" %in% names(tax_id))) {dplyr::select(everything())} else {
+                                                        phylum == "Arthropoda" | is.na(phylum)}) %>%  # filter to phylum Arthropoda
+                 #################     class == "Insecta" | is.na(class))) %>% # filter to class Insecta
                                        dplyr::filter(if(!(status %in% c("ACCEPTED"))) {row_number() == 1} else { 
                                                         status %in% c("ACCEPTED")}) %>%   # filter to accepted names only
+                                       dplyr::filter(if(!(matchtype %in% c("EXACT", "HIGHERRANK"))) {row_number() == 1} else {
+                                                        matchtype %in% c("EXACT", "HIGHERRANK")}) %>% # filter for exact matches 
                                        dplyr::filter(xor(any(rank == "species"), rank == "genus")) %>% # filter rank to species if both genus and species
                                        select(-one_of(xtra_cols)) 
  
@@ -165,18 +174,23 @@ get_accepted_taxonomy <- function(taxa_name){
                                                                                 sapply(strsplit(scientificname, " "), length) == 1,
                                                                              NA_character_,
                                                                              gsub("^\\w+\\s+\\w+\\s+(.*)", "\\1", scientificname))) %>%
+                                         mutate(taxonomic_authority = ifelse(genus %in% sapply(strsplit(tax_gbif$scientificname, " "), unlist),
+                                                                             stringr::word(tax_gbif$taxonomic_authority,-2,-1),
+                                                                             taxonomic_authority)) %>% 
                                          # get genus_species
                                          mutate(genus_species = ifelse(!exists("species"), paste(genus, "sp"), canonicalname))  %>%
                                          mutate(taxonomy_system = "GBIF") %>%
-                                         select(-scientificname, -canonicalname) 
+                                         select(#-rank, -status, -matchtype, -synonym,
+                                                -scientificname, -canonicalname, -confidence) %>% 
+                                         mutate_if(is.logical, as.character) 
 
                              return(tax_gbif)
                              }
                          }
-#####	
-# need to write if else statement for cases when only genus is found for splitting out the authority
-# plot off the date and name for authority.  Keep everything that is not authority as the genus_species
+
 #gsub("^((\\w+\\W+){0,1}\\w+).*", "\\1", scientificname)  # old code, but keeping for example...
+#####	
+
 
 # apply the function over the vector of species names
 tax_acc_l <- lapply(tax_vec, get_accepted_taxonomy) 
@@ -184,10 +198,7 @@ tax_acc_l <- lapply(tax_vec, get_accepted_taxonomy)
 # make dataframe of all results
 suppressMessages(
 tax_acc <- tax_acc_l %>% 
-           purrr::reduce(full_join) %>% 
-           filter(kingdom == "Animalia"  | is.na(kingdom), # filter to only kingdom Animalia
-                  phylum == "Arthropoda" | is.na(phylum),  # filter to phylum Arthropoda only
-                  class == "Insecta" | is.na(class))  # filter to only class Insecta
+           purrr::reduce(full_join) 
 )
 
 
