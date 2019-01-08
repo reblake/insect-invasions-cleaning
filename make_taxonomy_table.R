@@ -5,7 +5,7 @@
 ####################################################################
 
 # Load packages needed for this script
-library(tidyverse) ; library(readxl) ; library(taxize) 
+library(tidyverse) ; library(readxl) ; library(taxize) ; library(rgbif) ; library(purrr)
 
 # set working directory
 setwd("/nfs/insectinvasions-data")
@@ -134,7 +134,7 @@ tax_raw <- tax_raw_l %>%
 )
 
 # write the raw taxonomy table to a CSV file
-readr::write_csv(tax_raw, "./data/clean_data/taxonomy_raw.csv")
+#readr::write_csv(tax_raw, "./data/clean_data/taxonomy_raw.csv")
 ######################
 
 ######################
@@ -144,8 +144,9 @@ get_accepted_taxonomy <- function(taxa_name){
                          id <- get_gbifid_(taxa_name)  # gets ID from GBIF
                          
                          # deal with cases where species name not found
-                         if (nrow(id[[1]]) == 0){data.frame(user_supplied_name = taxa_name,
-                                                            genus_species = "species not found")
+                         if (nrow(id[[1]]) == 0) {data.frame(user_supplied_name = taxa_name,
+                                                             genus_species = "species not found")
+                             
                              } else { 
                              xtra_cols <- c(#"rank", "status", "matchtype", "confidence", "synonym",
                                              "kingdomkey", "phylumkey", "classkey", "orderkey", "specieskey",
@@ -156,10 +157,6 @@ get_accepted_taxonomy <- function(taxa_name){
                              # filter dataframe for accepted names
                              id_acc <- tax_id %>% 
                                        mutate_if(is.logical, as.character) %>% 
-                                       dplyr::filter(kingdom == "Animalia"  | is.na(kingdom)) %>%  # filter to kingdom Animalia
-                                       dplyr::filter(if(!("phylum" %in% names(tax_id))) {dplyr::select(everything())} else {
-                                                        phylum == "Arthropoda" | is.na(phylum)}) %>%  # filter to phylum Arthropoda
-                 #################     class == "Insecta" | is.na(class))) %>% # filter to class Insecta
                                        dplyr::filter(if(!(status %in% c("ACCEPTED"))) {row_number() == 1} else { 
                                                         status %in% c("ACCEPTED")}) %>%   # filter to accepted names only
                                        dplyr::filter(if(!(matchtype %in% c("EXACT", "HIGHERRANK"))) {row_number() == 1} else {
@@ -167,29 +164,32 @@ get_accepted_taxonomy <- function(taxa_name){
                                        dplyr::filter(xor(any(rank == "species"), rank == "genus")) %>% # filter rank to species if both genus and species
                                        select(-one_of(xtra_cols)) 
  
+                           
                              # make df of all taxonomic info from GBIF
                              tax_gbif <- id_acc %>%
                                          # get authority
-                                         mutate(taxonomic_authority = ifelse(!exists("species") | 
-                                                                                sapply(strsplit(scientificname, " "), length) == 1,
+                                         mutate(taxonomic_authority = ifelse(sapply(strsplit(scientificname, " "), length) == 1,
                                                                              NA_character_,
                                                                              gsub("^\\w+\\s+\\w+\\s+(.*)", "\\1", scientificname))) %>%
-                                         mutate(taxonomic_authority = ifelse(genus %in% sapply(strsplit(tax_gbif$scientificname, " "), unlist),
-                                                                             stringr::word(tax_gbif$taxonomic_authority,-2,-1),
+                                         mutate(taxonomic_authority = ifelse(genus %in% sapply(strsplit(scientificname, " "), unlist),
+                                                                             stringr::word(taxonomic_authority,-2,-1),
                                                                              taxonomic_authority)) %>% 
                                          # get genus_species
                                          mutate(genus_species = ifelse(!exists("species"), paste(genus, "sp"), canonicalname))  %>%
+                                         # filter to kingdom, phylum, class
+                                         dplyr::filter(kingdom == "Animalia"  | is.na(kingdom)) %>%  
+                                         dplyr::filter(if(!("phylum" %in% names(tax_id))) {TRUE} else {
+                                                          phylum == "Arthropoda" | is.na(phylum)}) %>%  
+                                         dplyr::filter(if(!("class" %in% names(tax_id))) {TRUE} else {
+                                                          class == "Insecta"  | is.na(class)}) %>% 
                                          mutate(taxonomy_system = "GBIF") %>%
                                          select(#-rank, -status, -matchtype, -synonym,
                                                 -scientificname, -canonicalname, -confidence) %>% 
                                          mutate_if(is.logical, as.character) 
-
+                                 
                              return(tax_gbif)
                              }
                          }
-
-#gsub("^((\\w+\\W+){0,1}\\w+).*", "\\1", scientificname)  # old code, but keeping for example...
-#####	
 
 
 # apply the function over the vector of species names
@@ -199,6 +199,51 @@ tax_acc_l <- lapply(tax_vec, get_accepted_taxonomy)
 suppressMessages(
 tax_acc <- tax_acc_l %>% 
            purrr::reduce(full_join) 
+)
+
+######################
+# resolve species without accepted species names
+
+#####            
+genus_only <- tax_acc %>% dplyr::filter(rank == "genus")
+
+genus_only_l <- list(tax_acc$user_supplied_name)
+
+get_lowerrank <- function(taxa_name){
+                 id <- #gnr_resolve(names = taxa_name)  # no new info.
+                       
+                 }
+
+                       #get_uid(sciname = taxa_name) # returns nothing
+                       #get_tsn(searchterm = taxa_name, searchtype = "scientific") # returns nothing
+                       #get_ids(names=taxa_name, db = "gbif")  # returns nothing
+                       #gnr_resolve(names = taxa_name)   # returns nothing
+                        
+                 
+
+#####
+not_found <- tax_acc %>% dplyr::filter(genus_species == "species not found") %>% select(user_supplied_name)
+
+get_not_found <- function(taxa_name){
+                 id <- name_backbone(taxa_name, class="Insecta", verbose=TRUE)[[1]]  # returns something  
+                   
+                 # adds user_supplied_name
+                 tax_id <- id %>% 
+                           mutate(user_supplied_name = taxa_name) %>% 
+                           select(-confidence, -scientificName, -canonicalName, 
+                                  -kingdomKey, -phylumKey, -classKey) %>% 
+                           select(user_supplied_name, everything())
+                 
+                 return(tax_id)
+                 }
+
+# apply the function over the vector of species names
+tax_nf_l <- lapply(not_found, get_not_found) 
+
+# make dataframe of all results
+suppressMessages(
+tax_nf <- tax_nf_l %>% 
+          purrr::reduce(full_join) 
 )
 
 
