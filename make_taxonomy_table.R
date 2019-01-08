@@ -99,39 +99,39 @@ tax_df1 <- tax_df %>%
 #####################################
 ### Get taxonomy info from GBIF   ###
 #####################################
-
 # makes character vector of species names
-tax_vec <- unlist(tax_df1$genus_species, use.names = FALSE)  
+tax_vec <- unlist(tax_df1$genus_species, use.names = FALSE)
+
 
 # write function(s) to apply over this character vector
 
-######################
-# get raw taxonomic info from GBIF
-get_raw_taxonomy <- function(taxa_name){
-                    id <- get_gbifid_(taxa_name)  # gets ID from GBIF
-                    
-                    # deal with cases where species name not found
-                    if (nrow(id[[1]]) == 0){data.frame(user_supplied_name = taxa_name,
-                                                       genus_species = "species not found")
-                       } else { 
-                       # puts ID info into one dataframe
-                       tax_id <- map_df(id, ~as.data.frame(.x), .id="user_supplied_name")
-                       }
-                       
-                    return(tax_id)
-                    }
-
-# apply the function over the vector of species names
-tax_raw_l <- lapply(tax_vec, get_raw_taxonomy) 
-
-# make dataframe of all results
-suppressMessages(
-tax_raw <- tax_raw_l %>% 
-           purrr::reduce(full_join) %>% 
-           filter(kingdom == "Animalia"  | is.na(kingdom), # filter to only kingdom Animalia
-                  phylum == "Arthropoda" | is.na(phylum),  # filter to phylum Arthropoda only
-                  class == "Insecta" | is.na(class))  # filter to only class Insecta
-)
+# ######################
+# # get raw taxonomic info from GBIF
+# get_raw_taxonomy <- function(taxa_name){
+#                     id <- get_gbifid_(taxa_name)  # gets ID from GBIF
+#                     
+#                     # deal with cases where species name not found
+#                     if (nrow(id[[1]]) == 0){data.frame(user_supplied_name = taxa_name,
+#                                                        genus_species = "species not found")
+#                        } else { 
+#                        # puts ID info into one dataframe
+#                        tax_id <- map_df(id, ~as.data.frame(.x), .id="user_supplied_name")
+#                        }
+#                        
+#                     return(tax_id)
+#                     }
+# 
+# # apply the function over the vector of species names
+# tax_raw_l <- lapply(tax_vec, get_raw_taxonomy) 
+# 
+# # make dataframe of all results
+# suppressMessages(
+# tax_raw <- tax_raw_l %>% 
+#            purrr::reduce(full_join) %>% 
+#            filter(kingdom == "Animalia"  | is.na(kingdom), # filter to only kingdom Animalia
+#                   phylum == "Arthropoda" | is.na(phylum),  # filter to phylum Arthropoda only
+#                   class == "Insecta" | is.na(class))  # filter to only class Insecta
+# )
 
 # write the raw taxonomy table to a CSV file
 #readr::write_csv(tax_raw, "./data/clean_data/taxonomy_raw.csv")
@@ -175,7 +175,7 @@ get_accepted_taxonomy <- function(taxa_name){
                                                                              stringr::word(taxonomic_authority,-2,-1),
                                                                              taxonomic_authority)) %>% 
                                          # get genus_species
-                                         mutate(genus_species = ifelse(!exists("species"), paste(genus, "sp"), canonicalname))  %>%
+                                         mutate(genus_species = ifelse(!exists("species"), paste(genus, "sp"), species))  %>%
                                          # filter to kingdom, phylum, class
                                          dplyr::filter(kingdom == "Animalia"  | is.na(kingdom)) %>%  
                                          dplyr::filter(if(!("phylum" %in% names(tax_id))) {TRUE} else {
@@ -205,24 +205,43 @@ tax_acc <- tax_acc_l %>%
 # resolve species without accepted species names
 
 #####            
-genus_only <- tax_acc %>% dplyr::filter(rank == "genus")
+genus_only <- tax_acc %>% 
+              dplyr::filter(rank == "genus") %>% 
+######################################Fix This!!              dplyr::filter(!("sp" %in% strsplit(user_supplied_name, " ")))
 
-genus_only_l <- list(tax_acc$user_supplied_name)
+genus_only_l <- unlist(genus_only$user_supplied_name, use.names = FALSE)
 
 get_lowerrank <- function(taxa_name){
-                 id <- #gnr_resolve(names = taxa_name)  # no new info.
+                 id <- gnr_resolve(names = taxa_name, data_source_ids=c(1,2,3,4,8,12,152),
+                                   canonical=TRUE, best_match_only=TRUE)  
+                 
+                 pageid <- eol_search(taxa_name)$pageid[1]
+                 p <- eol_pages(taxonconceptID=pageid)
+                 
+                 
+                 id2 <- get_eolid_(sciname = taxa_name, ask = FALSE)
                        
                  }
 
                        #get_uid(sciname = taxa_name) # returns nothing
                        #get_tsn(searchterm = taxa_name, searchtype = "scientific") # returns nothing
-                       #get_ids(names=taxa_name, db = "gbif")  # returns nothing
+                       #get_ids(names=taxa_name, db = "gbif")  # no new info
                        #gnr_resolve(names = taxa_name)   # returns nothing
                         
+# apply the function over the vector of species names
+tax_go_l <- lapply(genus_only_l, get_lowerrank) 
+
+# make dataframe of all results
+suppressMessages(
+tax_go <- tax_go_l %>% 
+          purrr::reduce(full_join) 
+)
                  
 
 #####
-not_found <- tax_acc %>% dplyr::filter(genus_species == "species not found") %>% select(user_supplied_name)
+not_found <- tax_acc %>% dplyr::filter(genus_species == "species not found") 
+
+not_found_l <- unlist(not_found$user_supplied_name, use.names = FALSE)
 
 get_not_found <- function(taxa_name){
                  id <- name_backbone(taxa_name, class="Insecta", verbose=TRUE)[[1]]  # returns something  
@@ -252,8 +271,7 @@ tax_nf <- tax_nf_l %>%
 #######################################################################
 tax_df_min <- tax_df1 %>% 
               # rename the genus_species column in tax_df1 to user_supplied_name
-              dplyr::rename(user_supplied_name = genus_species) %>% 
-              dplyr::select(user_supplied_name, super_family) # remove all columns except taxa list
+              dplyr::rename(user_supplied_name = genus_species) 
 
 tax_final <- tax_acc %>%   
              left_join(tax_df_min) %>%  # bind in the taxonomic names 
