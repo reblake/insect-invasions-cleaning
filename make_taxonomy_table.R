@@ -154,6 +154,7 @@ get_accepted_taxonomy <- function(taxa_name){
                                
                              # puts ID info into one dataframe
                              tax_id <- map_df(id, ~as.data.frame(.x), .id="user_supplied_name")
+                             
                              # filter dataframe for accepted names
                              id_acc <- tax_id %>% 
                                        mutate_if(is.logical, as.character) %>% 
@@ -164,14 +165,13 @@ get_accepted_taxonomy <- function(taxa_name){
                                        dplyr::filter(xor(any(rank == "species"), rank == "genus")) %>% # filter rank to species if both genus and species
                                        select(-one_of(xtra_cols)) 
  
-                           
                              # make df of all taxonomic info from GBIF
                              tax_gbif <- id_acc %>%
                                          # get authority
                                          mutate(taxonomic_authority = ifelse(sapply(strsplit(scientificname, " "), length) == 1,
                                                                              NA_character_,
                                                                              gsub("^\\w+\\s+\\w+\\s+(.*)", "\\1", scientificname))) %>%
-                                         mutate(taxonomic_authority = ifelse(genus %in% sapply(strsplit(scientificname, " "), unlist),
+                                         mutate(taxonomic_authority = ifelse(genus %in% sapply(strsplit(taxonomic_authority, " "), unlist),
                                                                              stringr::word(taxonomic_authority,-2,-1),
                                                                              taxonomic_authority)) %>% 
                                          # get genus_species
@@ -204,79 +204,107 @@ tax_acc <- tax_acc_l %>%
 ######################
 # resolve species without accepted species names
 
-#####            
-genus_only <- tax_acc %>% 
-              dplyr::filter(rank == "genus") %>% 
-######################################Fix This!!              dplyr::filter(!("sp" %in% strsplit(user_supplied_name, " ")))
-
-genus_only_l <- unlist(genus_only$user_supplied_name, use.names = FALSE)
-
-get_lowerrank <- function(taxa_name){
+######################
+get_more_info <- function(taxa_name){
                  id <- gnr_resolve(names = taxa_name, data_source_ids=c(1,2,3,4,8,12,152),
                                    canonical=TRUE, best_match_only=TRUE)  
                  
-                 pageid <- eol_search(taxa_name)$pageid[1]
-                 p <- eol_pages(taxonconceptID=pageid)
-                 
-                 
-                 id2 <- get_eolid_(sciname = taxa_name, ask = FALSE)
+                 # deal with cases where species name not found
+                 if (nrow(id) == 0) {data.frame(user_supplied_name = taxa_name,
+                                                matched_name2 = "species not found")
+                     } else { 
+                     tax_ids <- id %>% 
+                                dplyr::rename(taxonomy_system = data_source_title) %>% 
+                                select(-submitted_name, -score)
                        
+                     return(tax_ids)  
+                     }
                  }
+######################
+#####
+# genus level matches from get_accepted_taxonomy
+genus_only <- tax_acc %>% 
+              dplyr::filter(rank == "genus") %>% 
+              # filter out those where user_supplied_name was only genus to begin with
+              dplyr::filter(!word(user_supplied_name,-1) == "sp")
 
-                       #get_uid(sciname = taxa_name) # returns nothing
-                       #get_tsn(searchterm = taxa_name, searchtype = "scientific") # returns nothing
-                       #get_ids(names=taxa_name, db = "gbif")  # no new info
-                       #gnr_resolve(names = taxa_name)   # returns nothing
-                        
+go_vec <- unlist(genus_only$user_supplied_name, use.names = FALSE)
+
 # apply the function over the vector of species names
-tax_go_l <- lapply(genus_only_l, get_lowerrank) 
+tax_go_l <- lapply(go_vec, get_more_info) 
 
 # make dataframe of all results
 suppressMessages(
 tax_go <- tax_go_l %>% 
-          purrr::reduce(full_join) 
+          purrr::reduce(full_join) %>% # join all data frames from list
+          # remove taxa that didn't provide a species-level match (no new info)
+          dplyr::filter((str_count(matched_name2, '\\s+')+1) == 2) %>% 
+          rename(species = matched_name2) %>% 
+          mutate(genus_species = species)
 )
                  
+# How many did not return lower rank? 
+suppressMessages(
+no_lower <- tax_go_l %>% 
+            purrr::reduce(full_join) %>% # join all data frames from list
+            # filter to taxa that only returned genus (no new info)
+            dplyr::filter((str_count(matched_name2, '\\s+')+1) == 1) 
+)
+
+# the two missing species:  "Nylanderia braueri glabrior"   "Parasclerocoelus mediospinosa"
 
 #####
+# species not found at all from get_accepted_taxonomy
 not_found <- tax_acc %>% dplyr::filter(genus_species == "species not found") 
 
 not_found_l <- unlist(not_found$user_supplied_name, use.names = FALSE)
 
-get_not_found <- function(taxa_name){
-                 id <- name_backbone(taxa_name, class="Insecta", verbose=TRUE)[[1]]  # returns something  
-                   
-                 # adds user_supplied_name
-                 tax_id <- id %>% 
-                           mutate(user_supplied_name = taxa_name) %>% 
-                           select(-confidence, -scientificName, -canonicalName, 
-                                  -kingdomKey, -phylumKey, -classKey) %>% 
-                           select(user_supplied_name, everything())
-                 
-                 return(tax_id)
-                 }
-
 # apply the function over the vector of species names
-tax_nf_l <- lapply(not_found, get_not_found) 
+tax_nf_l <- lapply(not_found_l, get_more_info) 
 
 # make dataframe of all results
 suppressMessages(
 tax_nf <- tax_nf_l %>% 
-          purrr::reduce(full_join) 
+          purrr::reduce(full_join) %>% 
+          dplyr::filter(!(matched_name2 == "species not found")) %>% 
+          mutate(genus = ifelse((str_count(matched_name2, '\\s+')+1) == 1, matched_name2, NA_character_),
+                 species = ifelse((str_count(matched_name2, '\\s+')+1) == 2, matched_name2, NA_character_),
+                 genus_species = ifelse(is.na(species), paste(genus, "sp"), species)) %>% 
+          select(-matched_name2)
 )
+
+# How many were not found? 
+suppressMessages(
+no_match <- tax_nf_l %>% 
+            purrr::reduce(full_join) %>% # join all data frames from list
+            dplyr::filter(matched_name2 == "species not found")
+)
+
+
+########
+# put together dataframes with new info from get_new_info function
+
+new_info <- tax_nf %>% 
+            full_join(tax_go) %>% 
+            mutate(genus = ifelse(is.na(genus), word(species,1), genus))
+
 
 
 #######################################################################
 ### Add unique IDs and combine species list and GBIF accepted names ###
 #######################################################################
-tax_df_min <- tax_df1 %>% 
-              # rename the genus_species column in tax_df1 to user_supplied_name
-              dplyr::rename(user_supplied_name = genus_species) 
-
 tax_final <- tax_acc %>%   
-             left_join(tax_df_min) %>%  # bind in the taxonomic names 
+             left_join(new_info, by = c("user_supplied_name")) %>%  # bind in the taxonomic names 
+             transmute(user_supplied_name, usagekey, rank, status, matchtype, kingdom,
+                       phylum, order, family, 
+                       genus = ifelse(is.na(genus.y), genus.x, genus.y),
+                       species = ifelse(is.na(species.y), species.x, species.y),
+                       synonym, class, taxonomic_authority,
+                       genus_species = ifelse(is.na(genus_species.y), genus_species.x, genus_species.y),
+                       taxonomy_system = ifelse(is.na(taxonomy_system.y), taxonomy_system.x, taxonomy_system.y)) %>% 
              # add the unique ID column after all unique species are in one dataframe
              tibble::rowid_to_column("taxon_id")
+
 
 
 #####################################
