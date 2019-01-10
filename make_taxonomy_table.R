@@ -74,7 +74,7 @@ seeb_data <- read.csv("./data/raw_data/seebens_clean.csv", stringsAsFactors=F)
 
 seeb_data1 <- seeb_data %>% 
               select(one_of(tax_class)) %>% 
-              unique()
+              unique()  # remove duplicate species names
 
 #####################################
 ### Make large table with all info
@@ -175,7 +175,7 @@ get_accepted_taxonomy <- function(taxa_name){
                                                                              stringr::word(taxonomic_authority,-2,-1),
                                                                              taxonomic_authority)) %>% 
                                          # get genus_species
-                                         mutate(genus_species = ifelse(!exists("species"), paste(genus, "sp"), species))  %>%
+                                         mutate(genus_species = ifelse(!exists("species")|is.na("species"), paste(genus, "sp"), species))  %>%
                                          # filter to kingdom, phylum, class
                                          dplyr::filter(kingdom == "Animalia"  | is.na(kingdom)) %>%  
                                          dplyr::filter(if(!("phylum" %in% names(tax_id))) {TRUE} else {
