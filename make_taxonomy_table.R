@@ -36,7 +36,8 @@ separate_taxonomy <- function(df_location){
                              select_all(~gsub("\\s+|\\.", "_", .)) %>%  
                              select_all(tolower) %>%  # make all column names lower case
                              mutate_all(~gsub("\\b([[:upper:]])([[:upper:]]+)",
-                                              "\\U\\1\\L\\2", . , perl=TRUE))
+                                              "\\U\\1\\L\\2", . , perl=TRUE)) %>% 
+                             mutate_all(~gsub("\\.", "", .))
                      
                      # define what taxonomic columns might be named        
                      tax_class <- c("kingdom", "phylum", "class", "order", "family", 
@@ -148,7 +149,7 @@ get_accepted_taxonomy <- function(taxa_name){
                                                              genus_species = "species not found")
                              
                              } else { 
-                             xtra_cols <- c(#"rank", "status", "matchtype", "confidence", "synonym",
+                             xtra_cols <- c(#"rank", "status", "matchtype", "confidence", "synonym", 
                                              "kingdomkey", "phylumkey", "classkey", "orderkey", "specieskey",
                                              "note", "familykey", "genuskey", "acceptedusagekey")
                                
@@ -162,7 +163,8 @@ get_accepted_taxonomy <- function(taxa_name){
                                                         status %in% c("ACCEPTED")}) %>%   # filter to accepted names only
                                        dplyr::filter(if(!(matchtype %in% c("EXACT", "HIGHERRANK"))) {row_number() == 1} else {
                                                         matchtype %in% c("EXACT", "HIGHERRANK")}) %>% # filter for exact matches 
-                                       dplyr::filter(xor(any(rank == "species"), rank == "genus")) %>% # filter rank to species if both genus and species
+                                       dplyr::filter(xor(any(rank %in% c("species", "subspecies", "form")), 
+                                                         rank == "genus")) %>% # filter rank to species if both genus and species
                                        select(-one_of(xtra_cols)) 
  
                              # make df of all taxonomic info from GBIF
@@ -171,11 +173,13 @@ get_accepted_taxonomy <- function(taxa_name){
                                          mutate(taxonomic_authority = ifelse(sapply(strsplit(scientificname, " "), length) == 1,
                                                                              NA_character_,
                                                                              gsub("^\\w+\\s+\\w+\\s+(.*)", "\\1", scientificname))) %>%
-                                         mutate(taxonomic_authority = ifelse(genus %in% sapply(strsplit(taxonomic_authority, " "), unlist),
+                                         mutate(taxonomic_authority = ifelse(genus %in% sapply(strsplit(taxonomic_authority, " "), unlist)|
+                                                                             user_supplied_name %in% sapply(strsplit(taxonomic_authority, " "), unlist),
                                                                              stringr::word(taxonomic_authority,-2,-1),
                                                                              taxonomic_authority)) %>% 
                                          # get genus_species
-                                         mutate(genus_species = ifelse(!exists("species")|is.na("species"), paste(genus, "sp"), species))  %>%
+                                         mutate(genus_species = ifelse(!exists("species")|is.na("species"), 
+                                                                       paste(genus, "sp"), species))  %>%
                                          # filter to kingdom, phylum, class
                                          dplyr::filter(kingdom == "Animalia"  | is.na(kingdom)) %>%  
                                          dplyr::filter(if(!("phylum" %in% names(tax_id))) {TRUE} else {
@@ -212,6 +216,7 @@ get_more_info <- function(taxa_name){
                  # deal with cases where species name not found
                  if (nrow(id) == 0) {data.frame(user_supplied_name = taxa_name,
                                                 matched_name2 = "species not found")
+                   
                      } else { 
                      tax_ids <- id %>% 
                                 dplyr::rename(taxonomy_system = data_source_title) %>% 
@@ -237,8 +242,9 @@ tax_go_l <- lapply(go_vec, get_more_info)
 suppressMessages(
 tax_go <- tax_go_l %>% 
           purrr::reduce(full_join) %>% # join all data frames from list
+          dplyr::filter(!(matched_name2 == "species not found")) %>% 
           # remove taxa that didn't provide a species-level match (no new info)
-          dplyr::filter((str_count(matched_name2, '\\s+')+1) == 2) %>% 
+          dplyr::filter((str_count(matched_name2, '\\s+')+1) %in% c(2,3)) %>% 
           rename(species = matched_name2) %>% 
           mutate(genus_species = species)
 )
@@ -248,7 +254,8 @@ suppressMessages(
 no_lower <- tax_go_l %>% 
             purrr::reduce(full_join) %>% # join all data frames from list
             # filter to taxa that only returned genus (no new info)
-            dplyr::filter((str_count(matched_name2, '\\s+')+1) == 1) 
+            dplyr::filter((str_count(matched_name2, '\\s+')+1) == 1|
+                          matched_name2 == "species not found") 
 )
 
 # the two missing species:  "Nylanderia braueri glabrior"   "Parasclerocoelus mediospinosa"
