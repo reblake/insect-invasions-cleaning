@@ -83,17 +83,7 @@ seeb_data1 <- seeb_data %>%
 tax_df1 <- tax_df %>% 
            bind_rows(seeb_data1) %>% 
            mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE)) %>% 
-
-           # # fill in NAs if genus_species is duplicated
-           # group_by(genus_species) %>% 
-           # mutate(class = recode(class, "Hexapoda" = "Insecta")) %>% # replaces old class name with new
-           # fill(everything()) %>% 
-           # fill(everything(), .direction = "up") %>% 
-           # ungroup() %>%   
-           # 
-           #distinct(genus_species, .keep_all = TRUE) %>%  # remove species duplicates 
            distinct(genus_species) %>%  # remove species duplicates          
-           #select(genus_species, everything()) %>%  # reorder columns
            dplyr::arrange(genus_species) # arrange alphabetically
   
 
