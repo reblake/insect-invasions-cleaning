@@ -146,57 +146,59 @@ get_accepted_taxonomy <- function(taxa_name){
                              # puts ID info into one dataframe
                              tax_id <- map_df(id, ~as.data.frame(.x), .id="user_supplied_name")
                              
-                             # filter dataframe for accepted names
-                             id_acc <- tax_id %>% 
-                                       mutate_if(is.logical, as.character) %>% 
-                                       # filter to kingdom, phylum, class
-                                       dplyr::filter(kingdom == "Animalia"  | is.na(kingdom)) %>%  
-                                       dplyr::filter(if(!("phylum" %in% names(.))) {TRUE} else {
+                             id_insect <- tax_id %>% 
+                                          mutate_if(is.logical, as.character) %>% 
+                                          # filter to kingdom, phylum, class
+                                          dplyr::filter(kingdom == "Animalia"  | is.na(kingdom)) %>%  
+                                          dplyr::filter(if(!("phylum" %in% names(.))) {TRUE} else {
                                                         phylum == "Arthropoda" | is.na(phylum)}) %>%  
-                                       dplyr::filter(if(!("class" %in% names(.))) {TRUE} else {
-                                                        class == "Insecta"  | is.na(class)}) %>% 
-                                       # filter to best matched name
-                                       dplyr::filter(if (status %in% c("ACCEPTED") & matchtype %in% c("EXACT")){ 
-                                                         status == "ACCEPTED" & matchtype == "EXACT"
-                                                     } else if (status %in% c("SYNONYM") & matchtype %in% c("EXACT")) {
-                                                                status == "SYNONYM" & matchtype == "EXACT"
-                                                     } else if (status %in% c("DOUBTFUL") & matchtype %in% c("EXACT")) {
-                                                                status == "DOUBTFUL" & matchtype == "EXACT"
-                                                     } else if (status %in% c("DOUBTFUL") & matchtype %in% c("HIGHERRANK")) {
-                                                                status == "DOUBTFUL" & matchtype == "HIGHERRANK"
-                                                     } else if (status %in% c("ACCEPTED") & matchtype %in% c("FUZZY")) {
-                                                                status == "ACCEPTED" & matchtype == "FUZZY"
-                                                     } else if (status %in% c("SYNONYM") & matchtype %in% c("FUZZY")) {
-                                                                status == "SYNONYM" & matchtype == "FUZZY" 
-                                                     } else {row_number() == 1 
-                                                     }) %>%  
-                                       dplyr::filter(xor(any(rank %in% c("species", "subspecies", "form")), 
-                                                         rank == "genus")) %>% # filter rank to species if both genus and species
-                                       select(-one_of(xtra_cols)) 
+                                          dplyr::filter(if(!("class" %in% names(.))) {TRUE} else {
+                                                        class == "Insecta"  | is.na(class)})
                              
-                             id_acc <- if (nrow(id_acc)>1) {id_acc[1,]} else {id_acc} # if more than one row, select first row
+                             if (nrow(id_insect) == 0) {id_insect
+                                 } else {
+                                 # filter dataframe for accepted names
+                                 id_acc <- id_insect %>% 
+                                           # filter to best matched name
+                                           dplyr::filter(if (status %in% c("ACCEPTED") & matchtype %in% c("EXACT")){ 
+                                                             status == "ACCEPTED" & matchtype == "EXACT"
+                                                         } else if (status %in% c("SYNONYM") & matchtype %in% c("EXACT")) {
+                                                                    status == "SYNONYM" & matchtype == "EXACT"
+                                                         } else if (status %in% c("DOUBTFUL") & matchtype %in% c("EXACT")) {
+                                                                    status == "DOUBTFUL" & matchtype == "EXACT"
+                                                         } else if (status %in% c("DOUBTFUL") & matchtype %in% c("HIGHERRANK")) {
+                                                                    status == "DOUBTFUL" & matchtype == "HIGHERRANK"
+                                                         } else if (status %in% c("ACCEPTED") & matchtype %in% c("FUZZY")) {
+                                                                    status == "ACCEPTED" & matchtype == "FUZZY"
+                                                         } else if (status %in% c("SYNONYM") & matchtype %in% c("FUZZY")) {
+                                                                    status == "SYNONYM" & matchtype == "FUZZY" 
+                                                         } else {row_number() == 1 
+                                                         }) %>%  
+                                           dplyr::filter(xor(any(rank %in% c("species", "subspecies", "form")), 
+                                                             rank == "genus")) %>% # filter rank to species if both genus and species
+                                           select(-one_of(xtra_cols)) 
+                             
+                                 id_acc <- if (nrow(id_acc)>1) {id_acc[1,]} else {id_acc} # if more than one row, select first row
  
-                             # make df of all taxonomic info from GBIF
-                             tax_gbif <- id_acc %>%
-                                         # get authority
-                                         mutate(taxonomic_authority = ifelse(sapply(strsplit(scientificname, " "), length) == 1,
-                                                                             NA_character_,
-                                                                             gsub("^\\w+\\s+\\w+\\s+(.*)", "\\1", scientificname))) %>%
-                                         mutate(taxonomic_authority = ifelse(genus %in% sapply(strsplit(taxonomic_authority, " "), unlist)|
-                                                                             user_supplied_name %in% sapply(strsplit(taxonomic_authority, " "), unlist),
-                                                                             stringr::word(taxonomic_authority,-2,-1),
-                                                                             taxonomic_authority)) %>% 
-                                         # get genus_species
-                                         mutate(genus_species = ifelse(!exists("species")|is.na("species"), 
-                                                                       paste(genus, "sp"), species))  %>%
-                                         mutate(taxonomy_system = "GBIF") %>% # fill in taxonomy system source
-                                         select(user_supplied_name, usagekey, rank, status, matchtype, kingdom, phylum,
-                                                order, family, genus, species, synonym, class, taxonomic_authority,
-                                                genus_species, acceptedusagekey, taxonomy_system,
-                                                -scientificname, -canonicalname, -confidence) %>% 
-                                         mutate_if(is.logical, as.character) 
-                                 
-                             return(tax_gbif)
+                                 # make df of all taxonomic info from GBIF
+                                 tax_gbif <- id_acc %>%
+                                             # get authority
+                                             mutate(taxonomic_authority = ifelse(sapply(strsplit(scientificname, " "), length) == 1,
+                                                                                 NA_character_,
+                                                                                 gsub("^\\w+\\s+\\w+\\s+(.*)", "\\1", scientificname))) %>%
+                                             mutate(taxonomic_authority = ifelse(genus %in% sapply(strsplit(taxonomic_authority, " "), unlist)|
+                                                                                 user_supplied_name %in% sapply(strsplit(taxonomic_authority, " "), unlist),
+                                                                                 stringr::word(taxonomic_authority,-2,-1),
+                                                                                 taxonomic_authority)) %>% 
+                                             # get genus_species
+                                             mutate(genus_species = ifelse(!exists("species")|is.na("species"), 
+                                                                           paste(genus, "sp"), species))  %>%
+                                             mutate(taxonomy_system = "GBIF") %>% # fill in taxonomy system source
+                                             select(-scientificname, -canonicalname, -confidence) %>% 
+                                             mutate_if(is.logical, as.character) 
+                                     
+                                 return(tax_gbif)
+                                 }
                              }
                          }
 
@@ -219,16 +221,36 @@ get_more_info <- function(taxa_name){
                                    canonical=TRUE, best_match_only=TRUE)  
                  
                  # deal with cases where species name not found
-                 if (nrow(id) == 0) {data.frame(user_supplied_name = taxa_name,
+                 id_res <- if (nrow(id) == 0) {data.frame(user_supplied_name = taxa_name,
                                                 matched_name2 = "species not found")
+                               } else { 
+                               tax_ids <- id %>% 
+                                          dplyr::rename(taxonomy_system = data_source_title) %>% 
+                                          select(-submitted_name, -score)
+                           }
+                 
+                 # get higher taxonomic classification
+                 id_class <- if (!(id_res$taxonomy_system %in% c("NCBI", "ITIS"))) {id_res
+                                } else {
+                                c <- classification("Zygogramma bicolorata", db = tolower(id_res$taxonomy_system))
+                                c2 <- c[[1]] %>% 
+                                      #mutate_if(is.logical, as.character) %>%
+                                      dplyr::filter(rank %in% c("kingdom", "phylum", "class", "order", 
+                                                                "genus", "species")) %>% 
+                                      select(-id) %>% 
+                                      spread(key = rank, value = name)
+                                uid <- get_uid_(c2$species)
+                                c3 <- bind_cols(c2, data.frame(uid[[1]]$uid)) %>% 
+                                      rename(uid = uid..1...uid)
+                             }
+                 
+                 # merge id_res and id_class
+                 id_all <- id_res %>% 
+                           bind_cols(id_class) %>% 
+                           mutate_if(is.factor, as.character)
                    
-                     } else { 
-                     tax_ids <- id %>% 
-                                dplyr::rename(taxonomy_system = data_source_title) %>% 
-                                select(-submitted_name, -score)
-                       
-                     return(tax_ids)  
-                     }
+                 return(id_all)  
+                     
                  }
 ######################
 #####
