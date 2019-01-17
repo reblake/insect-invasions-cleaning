@@ -149,9 +149,9 @@ get_accepted_taxonomy <- function(taxa_name){
                                                              genus_species = "species not found")
                              
                              } else { 
-                             xtra_cols <- c(#"rank", "status", "matchtype", "confidence", "synonym", 
+                             xtra_cols <- c(#"rank", "status", "matchtype", "confidence", "synonym", "acceptedusagekey",
                                              "kingdomkey", "phylumkey", "classkey", "orderkey", "specieskey",
-                                             "note", "familykey", "genuskey", "acceptedusagekey")
+                                             "note", "familykey", "genuskey")
                                
                              # puts ID info into one dataframe
                              tax_id <- map_df(id, ~as.data.frame(.x), .id="user_supplied_name")
@@ -159,13 +159,32 @@ get_accepted_taxonomy <- function(taxa_name){
                              # filter dataframe for accepted names
                              id_acc <- tax_id %>% 
                                        mutate_if(is.logical, as.character) %>% 
-                                       dplyr::filter(if(!(status %in% c("ACCEPTED"))) {row_number() == 1} else { 
-                                                        status %in% c("ACCEPTED")}) %>%   # filter to accepted names only
-                                       dplyr::filter(if(!(matchtype %in% c("EXACT", "HIGHERRANK"))) {row_number() == 1} else {
-                                                        matchtype %in% c("EXACT", "HIGHERRANK")}) %>% # filter for exact matches 
+                                       # filter to kingdom, phylum, class
+                                       dplyr::filter(kingdom == "Animalia"  | is.na(kingdom)) %>%  
+                                       dplyr::filter(if(!("phylum" %in% names(.))) {TRUE} else {
+                                                        phylum == "Arthropoda" | is.na(phylum)}) %>%  
+                                       dplyr::filter(if(!("class" %in% names(.))) {TRUE} else {
+                                                        class == "Insecta"  | is.na(class)}) %>% 
+                                       # filter to best matched name
+                                       dplyr::filter(if (status %in% c("ACCEPTED") & matchtype %in% c("EXACT")){ 
+                                                         status == "ACCEPTED" & matchtype == "EXACT"
+                                                     } else if (status %in% c("SYNONYM") & matchtype %in% c("EXACT")) {
+                                                                status == "SYNONYM" & matchtype == "EXACT"
+                                                     } else if (status %in% c("DOUBTFUL") & matchtype %in% c("EXACT")) {
+                                                                status == "DOUBTFUL" & matchtype == "EXACT"
+                                                     } else if (status %in% c("DOUBTFUL") & matchtype %in% c("HIGHERRANK")) {
+                                                                status == "DOUBTFUL" & matchtype == "HIGHERRANK"
+                                                     } else if (status %in% c("ACCEPTED") & matchtype %in% c("FUZZY")) {
+                                                                status == "ACCEPTED" & matchtype == "FUZZY"
+                                                     } else if (status %in% c("SYNONYM") & matchtype %in% c("FUZZY")) {
+                                                                status == "SYNONYM" & matchtype == "FUZZY" 
+                                                     } else {row_number() == 1 
+                                                     }) %>%  
                                        dplyr::filter(xor(any(rank %in% c("species", "subspecies", "form")), 
                                                          rank == "genus")) %>% # filter rank to species if both genus and species
                                        select(-one_of(xtra_cols)) 
+                             
+                             id_acc <- if (nrow(id_acc)>1) {id_acc[1,]} else {id_acc} # if more than one row, select first row
  
                              # make df of all taxonomic info from GBIF
                              tax_gbif <- id_acc %>%
@@ -180,14 +199,10 @@ get_accepted_taxonomy <- function(taxa_name){
                                          # get genus_species
                                          mutate(genus_species = ifelse(!exists("species")|is.na("species"), 
                                                                        paste(genus, "sp"), species))  %>%
-                                         # filter to kingdom, phylum, class
-                                         dplyr::filter(kingdom == "Animalia"  | is.na(kingdom)) %>%  
-                                         dplyr::filter(if(!("phylum" %in% names(tax_id))) {TRUE} else {
-                                                          phylum == "Arthropoda" | is.na(phylum)}) %>%  
-                                         dplyr::filter(if(!("class" %in% names(tax_id))) {TRUE} else {
-                                                          class == "Insecta"  | is.na(class)}) %>% 
-                                         mutate(taxonomy_system = "GBIF") %>%
-                                         select(#-rank, -status, -matchtype, -synonym,
+                                         mutate(taxonomy_system = "GBIF") %>% # fill in taxonomy system source
+                                         select(user_supplied_name, usagekey, rank, status, matchtype, kingdom, phylum,
+                                                order, family, genus, species, synonym, class, taxonomic_authority,
+                                                genus_species, acceptedusagekey, taxonomy_system,
                                                 -scientificname, -canonicalname, -confidence) %>% 
                                          mutate_if(is.logical, as.character) 
                                  
