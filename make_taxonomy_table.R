@@ -230,26 +230,32 @@ get_more_info <- function(taxa_name){
                            }
                  
                  # get higher taxonomic classification
+                 ranks <- c("kingdom", "phylum", "class", "order", "genus", "species")
+                 
                  id_class <- if (!(id_res$taxonomy_system %in% c("NCBI", "ITIS"))) {id_res
                                 } else {
-                                c <- classification("Zygogramma bicolorata", db = tolower(id_res$taxonomy_system))
-                                c2 <- c[[1]] %>% 
-                                      #mutate_if(is.logical, as.character) %>%
-                                      dplyr::filter(rank %in% c("kingdom", "phylum", "class", "order", 
-                                                                "genus", "species")) %>% 
-                                      select(-id) %>% 
-                                      spread(key = rank, value = name)
-                                uid <- get_uid_(c2$species)
-                                c3 <- bind_cols(c2, data.frame(uid[[1]]$uid)) %>% 
-                                      rename(uid = uid..1...uid)
+                                c <- tax_name(taxa_name, 
+                                              get = c("kingdom", "phylum", "class", "order", "genus", "species"), 
+                                              db = tolower(id_res$taxonomy_system))
+                                if (is.na(c$kingdom)|is.na(c$genus)|is.na(c$order)) {id_res
+                                   } else {
+                                   uid <- get_uid_(c$species)
+                                   c3 <- bind_cols(c, data.frame(uid[[1]]$uid)) %>% 
+                                         rename(uid = uid..1...uid,
+                                                user_supplied_name = query) %>% 
+                                         select(-db)
+                                   }
                              }
                  
                  # merge id_res and id_class
-                 id_all <- id_res %>% 
-                           bind_cols(id_class) %>% 
-                           mutate_if(is.factor, as.character)
-                   
-                 return(id_all)  
+                 id_all <- if (all(names(id_res) %in% names(id_class)) == TRUE) {id_res  
+                              } else {
+                              a <- id_res %>% 
+                                   full_join(id_class, by = c("user_supplied_name")) %>%  # bind in the taxonomic names 
+                                   mutate_if(is.factor, as.character)
+                              }
+                 
+                 return(id_all)    
                      
                  }
 ######################
