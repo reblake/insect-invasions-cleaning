@@ -234,11 +234,13 @@ get_more_info <- function(taxa_name){
                  
                  id_class <- if (!(id_res$taxonomy_system %in% c("NCBI", "ITIS"))) {id_res
                                 } else {
+                                Sys.sleep(5)  
                                 c <- tax_name(taxa_name, 
                                               get = c("kingdom", "phylum", "class", "order", "genus", "species"), 
                                               db = tolower(id_res$taxonomy_system))
                                 if (is.na(c$kingdom)|is.na(c$genus)|is.na(c$order)) {id_res
                                    } else {
+                                   Sys.sleep(5)   
                                    uid <- get_uid_(c$species)
                                    c3 <- bind_cols(c, data.frame(uid[[1]]$uid)) %>% 
                                          rename(uid = uid..1...uid,
@@ -250,9 +252,9 @@ get_more_info <- function(taxa_name){
                  # merge id_res and id_class
                  id_all <- if (all(names(id_res) %in% names(id_class)) == TRUE) {id_res  
                               } else {
-                              a <- id_res %>% 
-                                   full_join(id_class, by = c("user_supplied_name")) %>%  # bind in the taxonomic names 
-                                   mutate_if(is.factor, as.character)
+                              id_res %>% 
+                              full_join(id_class, by = c("user_supplied_name")) %>%  # bind in the taxonomic names 
+                              mutate_if(is.factor, as.character)
                               }
                  
                  return(id_all)    
@@ -291,7 +293,7 @@ no_lower <- tax_go_l %>%
                           matched_name2 == "species not found") 
 )
 
-# the two missing species:  "Nylanderia braueri glabrior"   "Parasclerocoelus mediospinosa"
+
 
 #####
 # species not found at all from get_accepted_taxonomy
