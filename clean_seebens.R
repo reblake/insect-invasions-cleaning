@@ -27,11 +27,10 @@ seeb_df1 <- seeb_df %>%
                           present_status = presentstatus,
                           first_record = firstrecord,
                           first_record_orig = firstrecord_orig,
-                          data_quality = dataquality) 
-         # may use this later?  but not going to spend the time right now
-         # mutate(author_1 = sapply(strsplit(author, split=" ") , function(x) x[3]),
-         #        author_2 = sapply(strsplit(author, split=" ") , function(x) x[4]),
-         #        author = paste0(author_1, author_2)) #%>% 
+                          data_quality = dataquality) %>% 
+            dplyr::filter(!(region == "Japan" | region == "New Zealand" | region == "Australia"))
+
+
          
 # write the clean Seebens table to a CSV file
 readr::write_csv(seeb_df1, "./data/raw_data/seebens_clean.csv")
