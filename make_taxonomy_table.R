@@ -274,7 +274,7 @@ get_more_info <- function(taxa_name){
                       }
                  }
 ######################
-#####
+########
 # genus level matches from get_accepted_taxonomy
 genus_only <- tax_acc %>% 
               dplyr::filter(rank == "genus") %>% 
@@ -308,12 +308,18 @@ no_lower <- tax_go_l %>%
                            matched_name2 == "species not found") 
 )
 
+# from no_lower, the two that were not found
+no_lower_not_found <- no_lower %>% filter(matched_name2 == "species not found")
 
+# from no_lower, the genus_only matches
+no_lower_genus <- no_lower %>% filter(!(matched_name2 == "species not found"))
 
-#####
+########
 # species not found at all from get_accepted_taxonomy
-not_found <- tax_acc %>% dplyr::filter(genus_species == "species not found") %>% 
-             dplyr::filter(user_supplied_name  != "vegetable leafminer : legume leafminer")
+not_found <- tax_acc %>% 
+             dplyr::filter(genus_species == "species not found",
+                           !(is.na(user_supplied_name))) %>% 
+             bind_rows(no_lower_not_found)
 
 not_found_vec <- unlist(not_found$user_supplied_name, use.names = FALSE)
 
@@ -328,6 +334,7 @@ tax_nf <- tax_nf_l %>%
           mutate(genus = ifelse((str_count(matched_name2, '\\s+')+1) == 1, matched_name2, NA_character_),
                  species = ifelse((str_count(matched_name2, '\\s+')+1) %in% c(2,3), matched_name2, NA_character_),
                  genus_species = ifelse(is.na(species), paste(genus, "sp"), species)) %>% 
+          mutate(genus = ifelse(is.na(genus), stringr::word(species, 1), genus)) %>% 
           select(-matched_name2)
 )
 
@@ -347,7 +354,7 @@ nf_go <- tax_nf_l %>%
 
 ########
 # put together genus-level only matches
-genus_matches <- no_lower %>% 
+genus_matches <- no_lower_genus %>% 
                  bind_rows(nf_go) %>% 
                  mutate(genus = matched_name2)
                  
@@ -357,7 +364,7 @@ genus_matches <- no_lower %>%
 
 new_info <- tax_nf %>% 
             full_join(tax_go) %>% 
-            mutate(genus = ifelse(is.na(genus), word(species,1), genus))
+            mutate(genus = ifelse(is.na(genus), word(species, 1), genus))
 
 
 
@@ -377,6 +384,7 @@ tax_final <- tax_acc %>%
                        genus_species = ifelse(is.na(genus_species.y), genus_species.x, genus_species.y),
                        taxonomy_system = ifelse(is.na(taxonomy_system.y), taxonomy_system.x, taxonomy_system.y),
                        taxonomic_authority) %>% 
+             dplyr::filter(!(is.na(user_supplied_name))) %>% # remove blank rows
              # add the unique ID column after all unique species are in one dataframe
              tibble::rowid_to_column("taxon_id")
 
