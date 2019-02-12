@@ -5,17 +5,17 @@
 ####################################################################
 
 # Load packages needed for this script
-library(tidyverse) ; library(readxl)
+library(tidyverse) ; library(readxl) ; library(purrr)
 
 # set working directory
 setwd("/nfs/insectinvasions-data")
 
-# checks to see if clean flat files exist, otherwise creates them from multi-worksheet files
-if(!file.exists("./data/raw_data/seebens_clean.csv")|
-   !file.exists("./data/raw_data/raw_by_country/New Zealand_Edney_Browne_2018_clean.xlsx")) {
-           source("./scripts/clean_seebens.R")
-           source("./scripts/clean_new_zealand.R")
-           }
+# # checks to see if clean flat files exist, otherwise creates them from multi-worksheet files
+# if(!file.exists("./data/raw_data/seebens_clean.csv")|
+#    !file.exists("./data/raw_data/raw_by_country/New Zealand_Edney_Browne_2018_clean.xlsx")) {
+#            source("./scripts/clean_seebens.R")
+#            source("./scripts/clean_new_zealand.R")
+#            }
 
 # List all the data files
 file_list <- dir(path="./data/raw_data/raw_by_country", pattern='*.xlsx')  # makes list of the files
@@ -37,24 +37,30 @@ separate_occurrence <- function(df_location){
                                select_all(tolower) %>%  # make all column names lower case
                                mutate_all(~gsub("\\b([[:upper:]])([[:upper:]]+)",
                                                 "\\U\\1\\L\\2", . , perl=TRUE))
-                       
-                       # define what taxonomic columns might be named        
-                       tax_class <- c("kingdom", "phylum", "class", "order", "family", 
-                                      "genus", "species", "genus_species", "authority",
-                                      "super_family", "taxonomic_authority", "taxonomy_system") 
-                       
+                      
                        # define region
                        file_name <- sapply(strsplit(as.character(df_location), split="/") , function(x) x[5])
-                       country <- sapply(strsplit(as.character(file_name), split="_") , function(x) x[1])
+                       country_nm <- sapply(strsplit(as.character(file_name), split="_") , function(x) x[1])
                          
-                       # split off any columns that are _NOT_ taxonomic columns but retain genus_species
-                       df_2 <- df_1 %>% 
-                               select(-one_of("kingdom", "phylum", "class", "order", "family", 
-                                              "authority", "super_family")) %>%   
-                       # add the name of the country as a column
-                               mutate(region = country)
                        
-            
+                       df_2 <- df_1 %>% 
+                               # split off any columns that are not relevant
+                               select(-one_of("kingdom", "phylum", "class", "order", "family", 
+                                              "genus", "species", "authority", "super_family", 
+                                              "suborder", "author", "common_name", "taxonomy_system",
+                                              "phagy", "host_group", "intentionalrelease", "pest_type",
+                                              "jp_name", "source", "reference", "status", "synonym",
+                                              "origin2", "tsn", "comment", "original_species_name",
+                                              "rank", "name_changed___1_yes__0__no_", "phagy_main",
+                                              "feeding_type", "feeding_main", "size_mm_", "dist",
+                                              "current_distribution_cosmopolitan_", "town", "rege_date_source",
+                                              "nz_area_code", "life_form", "data_quality", "first_record_orig",
+                                              "confirmed_establishment"
+                                              )) %>%   
+                               # add the name of the country as a column
+                               mutate(region = country_nm)
+                       
+                        
                        # return df_2 
                        return(df_2)
                        
@@ -65,44 +71,38 @@ separate_occurrence <- function(df_location){
 occurr_list <- lapply(file_listp, separate_occurrence) 
 
 # put all occurrence dataframes into one large dataframe
-occurr_df <- occurr_list %>% 
+df_occurr <- occurr_list %>% 
              purrr::reduce(full_join) %>% 
-             dplyr::select(-x__1, -x__2) %>% # remove empty columns named by Excel
              mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE)) %>% # remove rogue white spaces
+             # filter out USA and Canada data from Seebens - keep Sandy's North America data
+             dplyr::filter(!(region == "Europe" & country %in% c("Usacanada", "United States")),
+                           !is.na(genus_species)) %>% 
+             # fill in country column with canada_or_us info
+             mutate(country = ifelse(is.na(country) & canada_or_us %in% c("Canada", "Us", "Us, may not actually be adventive"), 
+                                     canada_or_us, country),
+                    present_status = ifelse(present_status == "Na", NA, present_status)) %>% 
+             mutate(year = ifelse(year == -999, NA, year)) %>% 
+             dplyr::select(-canada_or_us, -nz_region) %>% 
              dplyr::arrange(genus_species) 
 
 # add the unique ID column and delete genus species column(s)
 tax_table <- read.csv("./data/clean_data/taxonomy_table.csv", stringsAsFactors=F)  # read in the taxonomy table
 
-# define what taxonomic columns might be named        
-tax_class <- c("kingdom", "phylum", "class", "order", "family", "super_family",
-               "genus", "species", "genus_species", "taxonomic_authority", "taxonomy_system") 
+# make final occurrence dataframe
+occurr_df <- df_occurr %>%
+             mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE)) %>% # remove rogue white spaces
+             dplyr::rename(user_supplied_name = genus_species) %>% # have to rename genus_species to user_supplied_name so matches are correct
+             dplyr::left_join(y = select(tax_table, c(user_supplied_name, taxon_id, genus_species)),
+                              by = "user_supplied_name") %>% # join in the taxonomy info
+             select(taxon_id, everything()) %>% # make taxon_id column the first column
+             dplyr::arrange(region) # order by region
 
-# define what other columns should not be included in occurrence table
-other_info <- c("phagy", "phagy_main", "feeding_type", "feeding_main", "size_mm_", "life_form")
-
-#####################################
-### Add in Seebens data           ###
-#####################################
-seeb_data <- read.csv("./data/raw_data/seebens_clean.csv", stringsAsFactors=F)  # read in the taxonomy table
-
-############ filter out the New Zealand records from the Seebens file
-
-occurr_df1 <- occurr_df %>% 
-              bind_rows(seeb_data) %>%  # add in the Seebens data
-              mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE)) %>% # remove rogue white spaces
-              dplyr::left_join(y = select(tax_table, c(genus_species, taxon_id)), 
-                               by = "genus_species") %>% # join in the taxonomy info
-              select(-one_of(tax_class)) %>%  # remove the taxonomy columns but retain taxon_id
-              select(-one_of(other_info)) %>% # remove the feeding habit columns
-              select(taxon_id, everything()) %>% # make taxon_id column the first column
-              dplyr::arrange(region) # order by region
 
 #####################################
 ### Write file                    ###
 #####################################
 # write the clean occurrence table to a CSV file
-readr::write_csv(occurr_df1, "./data/clean_data/occurrence_table.csv")
+readr::write_csv(occurr_df, "./data/clean_data/occurrence_table.csv")
 
 
 
