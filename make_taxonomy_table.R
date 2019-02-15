@@ -161,17 +161,17 @@ get_accepted_taxonomy <- function(taxa_name){
                                  # filter dataframe for accepted names
                                  id_acc <- id_insect %>% 
                                            # filter to best matched name
-                                           dplyr::filter(if (status %in% c("ACCEPTED") & matchtype %in% c("EXACT")){ 
+                                           dplyr::filter(if (any(status %in% c("ACCEPTED") & matchtype %in% c("EXACT"))){ 
                                                              status == "ACCEPTED" & matchtype == "EXACT"
-                                                         } else if (status %in% c("SYNONYM") & matchtype %in% c("EXACT")) {
+                                                         } else if (any(status %in% c("SYNONYM") & matchtype %in% c("EXACT"))) {
                                                                     status == "SYNONYM" & matchtype == "EXACT"
-                                                         } else if (status %in% c("DOUBTFUL") & matchtype %in% c("EXACT")) {
+                                                         } else if (any(status %in% c("DOUBTFUL") & matchtype %in% c("EXACT"))) {
                                                                     status == "DOUBTFUL" & matchtype == "EXACT"
-                                                         } else if (status %in% c("DOUBTFUL") & matchtype %in% c("HIGHERRANK")) {
+                                                         } else if (any(status %in% c("DOUBTFUL") & matchtype %in% c("HIGHERRANK"))) {
                                                                     status == "DOUBTFUL" & matchtype == "HIGHERRANK"
-                                                         } else if (status %in% c("ACCEPTED") & matchtype %in% c("FUZZY")) {
+                                                         } else if (any(status %in% c("ACCEPTED") & matchtype %in% c("FUZZY"))) {
                                                                     status == "ACCEPTED" & matchtype == "FUZZY"
-                                                         } else if (status %in% c("SYNONYM") & matchtype %in% c("FUZZY")) {
+                                                         } else if (any(status %in% c("SYNONYM") & matchtype %in% c("FUZZY"))) {
                                                                     status == "SYNONYM" & matchtype == "FUZZY" 
                                                          } else {row_number() == 1 
                                                          }) %>%  
