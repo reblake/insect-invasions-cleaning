@@ -90,7 +90,7 @@ get_accepted_taxonomy <- function(taxa_name){
           status == "ACCEPTED" & matchtype == "HIGHERRANK"
         } else if (sum(status %in% c("DOUBTFUL") & matchtype %in% c("HIGHERRANK"))>0) {
           status == "DOUBTFUL" & matchtype == "HIGHERRANK"
-        } else if (sum(status %in% c("SYNONYM") & matchtype %in% c("EXACT")& rank!="genus")>0) {
+        } else if (sum(status %in% c("SYNONYM") & matchtype %in% c("EXACT")& rank=="genus")>0) {
           status == "SYNONYM" & matchtype == "EXACT" & rank=="genus"
         } else if (sum(status %in% c("ACCEPTED") & matchtype %in% c("FUZZY"))>0) {
           status == "ACCEPTED" & matchtype == "FUZZY"
