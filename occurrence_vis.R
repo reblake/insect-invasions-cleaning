@@ -41,7 +41,7 @@ p2 <- p1 +
       geom_map(data=occ2, map=world_data, aes(map_id=region, fill=n)) +
       scale_fill_gradient(low="lightgreen", high="darkgreen")
 
-
+p2
 
 # leaflet
 
@@ -66,5 +66,5 @@ L1 <- leaflet(options = leafletOptions(minZoom = 1.5)) %>%
       addTiles() %>%
       addMarkers(data = markers, popup = markers$genus_species)
 
-
+L1
  
