@@ -59,12 +59,13 @@ occ3 <- occ_c %>%
         left_join(wd2, by = "region") %>% 
         dplyr::filter(!is.na(n), !is.na(region))
 
-markers <- aggregate(genus_species ~ lat + long, occ3, paste, collapse = "<br/>")
+markers <- aggregate(genus_species ~ lat + long + region, occ3, paste, collapse = "<br/>")
 
 
 L1 <- leaflet(options = leafletOptions(minZoom = 1.5)) %>%
       addTiles() %>%
-      addMarkers(data = markers, popup = markers$genus_species)
+      addMarkers(data = markers, popup = markers$genus_species,  
+                 label = markers$region, group = "hover")  
 
 L1
  
