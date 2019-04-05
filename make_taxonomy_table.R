@@ -68,34 +68,67 @@ tax_class <- c("kingdom", "phylum", "class", "order", "family", "super_family",
                "genus", "species", "genus_species", "taxonomic_authority", "taxonomy_system") 
 
 
-#####################################
-### Add in Seebens data          
-# read in the taxonomy table
-# seeb_data <- read.csv("./data/raw_data/seebens_clean.csv", stringsAsFactors=F)  
-# 
-# seeb_data1 <- seeb_data %>% 
-#               select(one_of(tax_class)) %>% 
-#               unique()  # remove duplicate species names
 
 #####################################
 ### Make large table with all info
 
+# also correct mis-spellings of certain species based on expert review by A. Liebhold
+
 tax_df1 <- tax_df %>% 
-           #bind_rows(seeb_data1) %>% 
            mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE)) %>% 
-           mutate_at(.vars = vars(genus_species), .funs = funs(str_squish)) %>% 
+           mutate_at(.vars = vars(genus_species), .funs = list(~str_squish)) %>% 
+           mutate(genus_species = if_else(genus_species == "Acronota lugens", "Acrotona lugens", genus_species),
+                  genus_species = if_else(genus_species == "Continarinea pyrivora", "Contarinia pyrivora", genus_species),
+                  genus_species = if_else(genus_species == "Datamicra canescens", "Datomicra canescens", genus_species),
+                  genus_species = if_else(genus_species == "Datamicra celata", "Datomicra celata", genus_species),
+                  genus_species = if_else(genus_species == "Datamicra zosterae", "Datomicra zosterae", genus_species),
+                  genus_species = if_else(genus_species == "Evbrissa vittata", "Hemyda vittata", genus_species),
+                  genus_species = if_else(genus_species == "Hypomierogaster tiro", "Hypomicrogaster tiro", genus_species),
+                  genus_species = if_else(genus_species == "Oedophyrus helleri", "Oedophrys helleri", genus_species),
+                  genus_species = if_else(genus_species == "Tigonotylus tenius", "Trigonotylus tenius", genus_species),
+                  genus_species = if_else(genus_species == "Phyttalia（Opius） fletcheri", "Psyttalia fletcheri", genus_species),
+                  genus_species = if_else(genus_species == "Polyspilla polyspilla", "Calligrapha polyspila", genus_species),
+                  genus_species = if_else(genus_species == "Parasclerocoelus mediospinosa", "Limosina mediospinosa", genus_species),
+                  genus_species = if_else(genus_species == "Baridinae gen", "Baridinae", genus_species),
+                  genus_species = if_else(genus_species == "Amphiareus eonstricta", "Amphiareus constrictus", genus_species),
+                  genus_species = if_else(genus_species == "Brumoides ohotai", "Brumoides ohtai", genus_species),
+                  genus_species = if_else(genus_species == "Caryedes serratus", "Caryedon serratus", genus_species),
+                  genus_species = if_else(genus_species == "Dimetrota cursors", "Atheta cursor", genus_species),
+                  genus_species = if_else(genus_species == "Allygidius modestus", "Allygus modestus", genus_species),
+                  genus_species = if_else(genus_species == "Ametadoria misella", "Anisia misella", genus_species),
+                  genus_species = if_else(genus_species == "Amischa curtipennis", "Quedius curtipennis", genus_species),
+                  genus_species = if_else(genus_species == "Amischa filaria", "Sipalia filaria", genus_species),
+                  genus_species = if_else(genus_species == "Artogeia canidia", "Pieris canidia", genus_species),
+                  genus_species = if_else(genus_species == "Altermetoponia rubriceps", "Inopus rubiceps", genus_species),
+                  genus_species = if_else(genus_species == "Helcystogramma sp nr phryganitis", "Helcystogramma sp", genus_species),
+                  genus_species = if_else(genus_species == "Laspeyresia pomonella", "Cydia pomonella", genus_species),
+                  genus_species = if_else(genus_species == "Labia anmdata", "Labia minor", genus_species),
+                  genus_species = if_else(genus_species == "Apanteles melanoscelus", "Cotesia melanoscelus", genus_species),
+                  genus_species = if_else(genus_species == "Biosteres oophilus oophilus", "Biosteres oophilus", genus_species),
+                  genus_species = if_else(genus_species == "Hylephila silvestris", "Thymelicus sylvestris", genus_species)
+                  ) %>% 
            distinct(genus_species) %>%  # remove species duplicates          
            dplyr::arrange(genus_species) # arrange alphabetically
   
 
 #####################################
+### Make vectors of genus names (no species info) and species names
+# make character vector of names only to genus
+g_sp <- grep('\\<sp\\>', tax_df1$genus_species, value=TRUE) 
+g_spp <- grep('\\<sp.\\>', tax_df1$genus_species, value=TRUE)
+tax_vec_gn <- c(g_sp, g_spp) %>% gsub(" [a-zA-Z0-9]*", "", .) %>% 
+              magrittr::extract(!(. == "Tasconotus")) # remove this species
+
+# makes character vector of names only to species 
+tax_vec_sp <- unlist(tax_df1$genus_species, use.names = FALSE) %>% 
+              magrittr::extract(!(. %in% g_sp)) %>% 
+              magrittr::extract(!(. %in% g_spp))
+
+
+#####################################
 ### Get taxonomy info from GBIF   ###
 #####################################
-# makes character vector of species names
-tax_vec <- unlist(tax_df1$genus_species, use.names = FALSE)
 
-
-# write function(s) to apply over this character vector
 
 # ######################
 # # get raw taxonomic info from GBIF
@@ -167,6 +200,8 @@ get_accepted_taxonomy <- function(taxa_name){
                                                                     status == "SYNONYM" & matchtype == "EXACT"
                                                          } else if (any(status %in% c("DOUBTFUL") & matchtype %in% c("EXACT"))) {
                                                                     status == "DOUBTFUL" & matchtype == "EXACT"
+                                                         } else if (any(status %in% c("ACCEPTED") & matchtype %in% c("HIGHERRANK"))) {
+                                                                    status == "ACCEPTED" & matchtype == "HIGHERRANK"  
                                                          } else if (any(status %in% c("DOUBTFUL") & matchtype %in% c("HIGHERRANK"))) {
                                                                     status == "DOUBTFUL" & matchtype == "HIGHERRANK"
                                                          } else if (any(status %in% c("ACCEPTED") & matchtype %in% c("FUZZY"))) {
@@ -203,12 +238,14 @@ get_accepted_taxonomy <- function(taxa_name){
                              }
                          }
 
-
-# apply the function over the vector of species names
-tax_acc_l <- lapply(tax_vec, get_accepted_taxonomy) 
-
+######################
 xtra_cols <- c("kingdomkey", "phylumkey", "classkey", "orderkey", "specieskey",
                "note", "familykey", "genuskey", "scientificname", "canonicalname", "confidence")
+
+######################
+# apply the function over the vector of species names
+tax_acc_l <- lapply(tax_vec_sp, get_accepted_taxonomy) 
+
 
 # make dataframe of all results
 suppressMessages(
@@ -217,6 +254,20 @@ tax_acc <- tax_acc_l %>%
            mutate(genus_species = str_squish(genus_species)) %>% 
            select(-one_of(xtra_cols))
 )
+
+######################
+# apply the function over the vector of genus names
+gn_acc_l <- lapply(tax_vec_gn, get_accepted_taxonomy) 
+
+
+# make dataframe of all results
+suppressMessages(
+gen_acc <- gn_acc_l %>% 
+           purrr::reduce(full_join) %>% 
+           mutate(genus_species = str_squish(genus_species)) %>% 
+           select(-one_of(xtra_cols))
+)
+
 
 ######################
 # resolve species without accepted species names
@@ -277,9 +328,9 @@ get_more_info <- function(taxa_name){
 ########
 # genus level matches from get_accepted_taxonomy
 genus_only <- tax_acc %>% 
-              dplyr::filter(rank == "genus") %>% 
+              dplyr::filter(rank == "genus") #%>% 
               # filter out those where user_supplied_name was only genus to begin with
-              dplyr::filter(!word(user_supplied_name,-1) == "sp")
+              #dplyr::filter(!word(user_supplied_name,-1) == "sp")
 
 go_vec <- unlist(genus_only$user_supplied_name, use.names = FALSE)
 
@@ -308,7 +359,7 @@ no_lower <- tax_go_l %>%
                            matched_name2 == "species not found") 
 )
 
-# from no_lower, the two that were not found
+# from no_lower, the one that was not found
 no_lower_not_found <- no_lower %>% filter(matched_name2 == "species not found")
 
 # from no_lower, the genus_only matches
@@ -364,16 +415,23 @@ genus_matches <- no_lower_genus %>%
 
 new_info <- tax_nf %>% 
             full_join(tax_go) %>% 
+            full_join(gen_acc) %>% 
             mutate(genus = ifelse(is.na(genus), word(species, 1), genus))
 
-
+# gen_acc  # genus only taxa split and run separately
 
 #######################################################################
 ### Add unique IDs and combine species list and GBIF accepted names ###
 #######################################################################
 tax_final <- tax_acc %>%   
              left_join(new_info, by = c("user_supplied_name")) %>%  # bind in the taxonomic names 
-             transmute(user_supplied_name, rank, status, matchtype, usagekey, uid, synonym, acceptedusagekey,
+             transmute(user_supplied_name, uid, 
+                       rank = ifelse(is.na(rank.y), rank.x, rank.y),
+                       status = ifelse(is.na(status.y), status.x, status.y),
+                       matchtype = ifelse(is.na(matchtype.y), matchtype.x, matchtype.y),
+                       usagekey = ifelse(is.na(usagekey.y), usagekey.x, usagekey.y),
+                       synonym = ifelse(is.na(synonym.y), synonym.x, synonym.y),
+                       acceptedusagekey = ifelse(is.na(acceptedusagekey.y), acceptedusagekey.x, acceptedusagekey.y),
                        kingdom = ifelse(is.na(kingdom.y), kingdom.x, kingdom.y),
                        phylum = ifelse(is.na(phylum.y), phylum.x, phylum.y), 
                        class = ifelse(is.na(class.y), class.x, class.y), 
@@ -383,7 +441,7 @@ tax_final <- tax_acc %>%
                        species = ifelse(is.na(species.y), species.x, species.y),
                        genus_species = ifelse(is.na(genus_species.y), genus_species.x, genus_species.y),
                        taxonomy_system = ifelse(is.na(taxonomy_system.y), taxonomy_system.x, taxonomy_system.y),
-                       taxonomic_authority) %>% 
+                       taxonomic_authority = ifelse(is.na(taxonomic_authority.y), taxonomic_authority.x, taxonomic_authority.y)) %>% 
              dplyr::filter(!(is.na(user_supplied_name))) %>% # remove blank rows
              # add the unique ID column after all unique species are in one dataframe
              tibble::rowid_to_column("taxon_id")

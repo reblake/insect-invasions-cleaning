@@ -17,7 +17,7 @@ p1 <- ggplot() +
                fill="white", colour="#7f7f7f", size=0.5) +
       coord_map("rectangular", lat0=0, xlim=c(-180,180), ylim=c(-60, 90))
 
-
+# occurrence data
 occ <- read.csv("./data/clean_data/occurrence_table.csv", stringsAsFactors = FALSE)
 
 occ_c <- occ %>% 
