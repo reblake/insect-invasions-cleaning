@@ -116,13 +116,15 @@ tax_df1 <- tax_df %>%
 # make character vector of names only to genus
 g_sp <- grep('\\<sp\\>', tax_df1$genus_species, value=TRUE) 
 g_spp <- grep('\\<sp.\\>', tax_df1$genus_species, value=TRUE)
-tax_vec_gn <- c(g_sp, g_spp) %>% gsub(" [a-zA-Z0-9]*", "", .) %>% 
+bard <- as.character(dplyr::filter(tax_df1, genus_species == "Baridinae")) # include subfamily here
+tax_vec_gn <- c(g_sp, g_spp, bard) %>% gsub(" [a-zA-Z0-9]*", "", .) %>% 
               magrittr::extract(!(. == "Tasconotus")) # remove this species
 
 # makes character vector of names only to species 
 tax_vec_sp <- unlist(tax_df1$genus_species, use.names = FALSE) %>% 
               magrittr::extract(!(. %in% g_sp)) %>% 
-              magrittr::extract(!(. %in% g_spp))
+              magrittr::extract(!(. %in% g_spp)) %>% 
+              magrittr::extract(!(. == "Baridinae")) # this subfamily put with genus above
 
 
 #####################################
@@ -408,7 +410,10 @@ nf_go <- tax_nf_l %>%
 genus_matches <- no_lower_genus %>% 
                  bind_rows(nf_go) %>% 
                  mutate(genus = matched_name2)
-                 
+
+########
+# bring in hand corrections from A. Liebhold's research
+sal_taxa <- read_csv("./data/raw_data/taxonomic_reference/genus_only_resolution_FIXED.csv", trim_ws = TRUE)
 
 ########
 # put together dataframes with new info from get_new_info function
@@ -416,9 +421,12 @@ genus_matches <- no_lower_genus %>%
 new_info <- tax_nf %>% 
             full_join(tax_go) %>% 
             full_join(gen_acc) %>% 
-            mutate(genus = ifelse(is.na(genus), word(species, 1), genus))
+            mutate(genus = ifelse(is.na(genus), word(species, 1), genus)) %>% 
+            full_join(sal_taxa)
 
 # gen_acc  # genus only taxa split and run separately
+
+
 
 #######################################################################
 ### Add unique IDs and combine species list and GBIF accepted names ###
