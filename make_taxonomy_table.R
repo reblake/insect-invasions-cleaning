@@ -339,12 +339,11 @@ go_vec <- unlist(genus_only$user_supplied_name, use.names = FALSE)
 # apply the function over the vector of species names
 tax_go_l <- lapply(go_vec, get_more_info) 
 
-# make dataframe of all results
+# make dataframe of all species rank matches
 suppressMessages(
 tax_go <- tax_go_l %>% 
           purrr::reduce(full_join) %>% # join all data frames from list
-          dplyr::filter(!(matched_name2 == "species not found")) %>% 
-          # remove taxa that didn't provide a species-level match (no new info)
+          dplyr::filter(!(matched_name2 == "species not found")) %>% # remove taxa that didn't provide a species-level match (no new info)
           dplyr::filter((str_count(matched_name2, '\\s+')+1) %in% c(2,3)) %>% 
           mutate(genus = ifelse((str_count(matched_name2, '\\s+')+1) == 1, matched_name2, NA_character_),
                  species = ifelse((str_count(matched_name2, '\\s+')+1) %in% c(2,3), matched_name2, NA_character_),
@@ -379,7 +378,7 @@ not_found_vec <- unlist(not_found$user_supplied_name, use.names = FALSE)
 # apply the function over the vector of species names
 tax_nf_l <- lapply(not_found_vec, get_more_info) 
 
-# make dataframe of all results
+# make dataframe of matches at genus and species rank
 suppressMessages(
 tax_nf <- tax_nf_l %>% 
           purrr::reduce(full_join) %>% 
@@ -409,20 +408,33 @@ nf_go <- tax_nf_l %>%
 # put together genus-level only matches
 genus_matches <- no_lower_genus %>% 
                  bind_rows(nf_go) %>% 
-                 mutate(genus = matched_name2)
+                 mutate(genus = matched_name2) %>% 
+                 dplyr::rename(genus_species = matched_name2)
 
-########
 # bring in hand corrections from A. Liebhold's research
 sal_taxa <- read_csv("./data/raw_data/taxonomic_reference/genus_only_resolution_FIXED.csv", trim_ws = TRUE)
+
+# add A. Liebhold's research to correct genus-level only matches
+genus_match_SAL <- genus_matches %>% 
+                   left_join(sal_taxa, by = "user_supplied_name") %>% 
+                   transmute(user_supplied_name, kingdom, phylum, class, 
+                             taxonomy_system = ifelse(!(is.na(genus_species.y)), taxonomy_system.y, taxonomy_system.x),
+                             order = ifelse(!(is.na(genus_species.y)), order.y, order.x),
+                             family = ifelse(!(is.na(genus_species.y)), family.y, family.x),
+                             genus = ifelse(!(is.na(genus_species.y)), word(genus_species.y, 1), genus),
+                             species = ifelse(!(is.na(genus_species.y)) & , genus_species.y, genus_species.x),
+                             genus_species = ifelse(!(is.na(genus_species.y)), genus_species.y, genus_species.x),
+                             synonym, uid)
+
+########
 
 ########
 # put together dataframes with new info from get_new_info function
 
 new_info <- tax_nf %>% 
             full_join(tax_go) %>% 
-            full_join(gen_acc) %>% 
-            mutate(genus = ifelse(is.na(genus), word(species, 1), genus)) %>% 
-            full_join(sal_taxa)
+            full_join(gen_acc) %>%  # df of taxa where user supplied name was genus only to start with
+            mutate(genus = ifelse(is.na(genus), word(species, 1), genus)) 
 
 # gen_acc  # genus only taxa split and run separately
 
