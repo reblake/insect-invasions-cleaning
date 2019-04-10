@@ -105,7 +105,8 @@ tax_df1 <- tax_df %>%
                   genus_species = if_else(genus_species == "Labia anmdata", "Labia minor", genus_species),
                   genus_species = if_else(genus_species == "Apanteles melanoscelus", "Cotesia melanoscelus", genus_species),
                   genus_species = if_else(genus_species == "Biosteres oophilus oophilus", "Biosteres oophilus", genus_species),
-                  genus_species = if_else(genus_species == "Hylephila silvestris", "Thymelicus sylvestris", genus_species)
+                  genus_species = if_else(genus_species == "Hylephila silvestris", "Thymelicus sylvestris", genus_species),
+                  genus_species = if_else(genus_species == "Pentaloma nigra", "Pentatoma nigra", genus_species)
                   ) %>% 
            distinct(genus_species) %>%  # remove species duplicates          
            dplyr::arrange(genus_species) # arrange alphabetically
@@ -417,14 +418,22 @@ sal_taxa <- read_csv("./data/raw_data/taxonomic_reference/genus_only_resolution_
 # add A. Liebhold's research to correct genus-level only matches
 genus_match_SAL <- genus_matches %>% 
                    left_join(sal_taxa, by = "user_supplied_name") %>% 
-                   transmute(user_supplied_name, kingdom, phylum, class, 
+                   # mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE)) %>% 
+                   transmute(user_supplied_name, 
                              taxonomy_system = ifelse(!(is.na(genus_species.y)), taxonomy_system.y, taxonomy_system.x),
+                             kingdom, phylum, class, 
                              order = ifelse(!(is.na(genus_species.y)), order.y, order.x),
                              family = ifelse(!(is.na(genus_species.y)), family.y, family.x),
                              genus = ifelse(!(is.na(genus_species.y)), word(genus_species.y, 1), genus),
-                             species = ifelse(!(is.na(genus_species.y)) & , genus_species.y, genus_species.x),
+                             species = ifelse(!(is.na(genus_species.y)), genus_species.y, NA_character_),
                              genus_species = ifelse(!(is.na(genus_species.y)), genus_species.y, genus_species.x),
                              synonym, uid)
+
+still_genus <- genus_match_SAL %>% 
+               dplyr::filter((str_count(genus_species, '\\s+')+1) == 1)
+
+sp_match <- genus_match_SAL %>% 
+            dplyr::filter(!(str_count(genus_species, '\\s+')+1) == 1)
 
 ########
 
@@ -434,6 +443,7 @@ genus_match_SAL <- genus_matches %>%
 new_info <- tax_nf %>% 
             full_join(tax_go) %>% 
             full_join(gen_acc) %>%  # df of taxa where user supplied name was genus only to start with
+            full_join(sp_match) %>%  # df of corrections to species from SAL
             mutate(genus = ifelse(is.na(genus), word(species, 1), genus)) 
 
 # gen_acc  # genus only taxa split and run separately
