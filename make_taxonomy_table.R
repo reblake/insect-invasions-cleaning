@@ -386,7 +386,7 @@ tax_nf <- tax_nf_l %>%
           dplyr::filter(!(matched_name2 == "species not found")) %>% 
           mutate(genus = ifelse((str_count(matched_name2, '\\s+')+1) == 1, matched_name2, NA_character_),
                  species = ifelse((str_count(matched_name2, '\\s+')+1) %in% c(2,3), matched_name2, NA_character_),
-                 genus_species = ifelse(is.na(species), paste(genus, "sp"), species)) %>% 
+                 genus_species = ifelse(is.na(species), genus, species)) %>% 
           mutate(genus = ifelse(is.na(genus), stringr::word(species, 1), genus)) %>% 
           select(-matched_name2)
 )
@@ -418,7 +418,6 @@ sal_taxa <- read_csv("./data/raw_data/taxonomic_reference/genus_only_resolution_
 # add A. Liebhold's research to correct genus-level only matches
 genus_match_SAL <- genus_matches %>% 
                    left_join(sal_taxa, by = "user_supplied_name") %>% 
-                   # mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE)) %>% 
                    transmute(user_supplied_name, 
                              taxonomy_system = ifelse(!(is.na(genus_species.y)), taxonomy_system.y, taxonomy_system.x),
                              kingdom, phylum, class, 
@@ -433,20 +432,24 @@ still_genus <- genus_match_SAL %>%
                dplyr::filter((str_count(genus_species, '\\s+')+1) == 1)
 
 sp_match <- genus_match_SAL %>% 
-            dplyr::filter(!(str_count(genus_species, '\\s+')+1) == 1)
+            dplyr::filter(!(str_count(genus_species, '\\s+')+1) == 1) %>% 
+            mutate_if(is.logical, as.character)
+
+dif <- setdiff(sal_taxa$genus_species, sp_match$genus_species) # taxa resolved in sal_taxa but not matched in sp_match
 
 ########
+
 
 ########
 # put together dataframes with new info from get_new_info function
 
 new_info <- tax_nf %>% 
+            dplyr::filter((str_count(genus_species, '\\s+')+1) == 2) %>% 
             full_join(tax_go) %>% 
             full_join(gen_acc) %>%  # df of taxa where user supplied name was genus only to start with
             full_join(sp_match) %>%  # df of corrections to species from SAL
             mutate(genus = ifelse(is.na(genus), word(species, 1), genus)) 
 
-# gen_acc  # genus only taxa split and run separately
 
 
 
