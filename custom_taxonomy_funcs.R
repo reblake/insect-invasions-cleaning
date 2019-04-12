@@ -114,8 +114,9 @@ get_accepted_taxonomy <- function(taxa_name){
                                                                     status == "SYNONYM" & matchtype == "FUZZY" 
                                                          } else {row_number() == 1 
                                                          }) %>%  
-                                           dplyr::filter(xor(any(rank %in% c("species", "subspecies", "form")), 
+                                           dplyr::filter(xor(any(rank %in% c("species", "subspecies", "form", "family")), 
                                                              rank == "genus")) %>% # filter rank to species if both genus and species
+                                           mutate_if(is.logical, as.character) %>% 
                                            select(-one_of(xtra_cols)) 
                              
                                  id_acc <- if (nrow(id_acc)>1) {id_acc[1,]} else {id_acc} # if more than one row, select first row
