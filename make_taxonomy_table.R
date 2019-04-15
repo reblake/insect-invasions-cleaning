@@ -64,7 +64,6 @@ tax_df1 <- tax_df %>%
                   genus_species = if_else(genus_species == "Phyttalia（Opius） fletcheri", "Psyttalia fletcheri", genus_species),
                   genus_species = if_else(genus_species == "Polyspilla polyspilla", "Calligrapha polyspila", genus_species),
                   genus_species = if_else(genus_species == "Parasclerocoelus mediospinosa", "Limosina mediospinosa", genus_species),
-                  genus_species = if_else(genus_species == "Baridinae gen", "Curculionidae", genus_species),
                   genus_species = if_else(genus_species == "Amphiareus eonstricta", "Amphiareus constrictus", genus_species),
                   genus_species = if_else(genus_species == "Brumoides ohotai", "Brumoides ohtai", genus_species),
                   genus_species = if_else(genus_species == "Caryedes serratus", "Caryedon serratus", genus_species),
@@ -236,9 +235,10 @@ genus_match_SAL <- genus_matches %>%
                              order = ifelse(!(is.na(genus_species.y)), order.y, order.x),
                              family = ifelse(!(is.na(genus_species.y)), family.y, family.x),
                              genus = ifelse(!(is.na(genus_species.y)), word(genus_species.y, 1), genus),
-                             species = ifelse(!(is.na(genus_species.y)), genus_species.y, NA_character_),
+                             species = ifelse(!(is.na(genus_species.y)) & rank == "species",
+                                              genus_species.y, NA_character_),
                              genus_species = ifelse(!(is.na(genus_species.y)), genus_species.y, genus_species.x),
-                             synonym, uid)
+                             rank, synonym, uid)
 
 still_genus <- genus_match_SAL %>% 
                dplyr::filter((str_count(genus_species, '\\s+')+1) == 1)
@@ -289,7 +289,8 @@ tax_final <- tax_acc %>%
              # add the unique ID column after all unique species are in one dataframe
              tibble::rowid_to_column("taxon_id")
 
-
+# duplicates
+dups <- tax_final %>% group_by(user_supplied_name) %>% filter(n()>1)
 
 #####################################
 ### Write file                    ###
