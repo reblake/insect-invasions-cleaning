@@ -210,55 +210,50 @@ genus_match_SAL <- genus_matches %>%
                    transmute(user_supplied_name, 
                              taxonomy_system = ifelse(!(is.na(genus_species.y)), taxonomy_system.y, taxonomy_system.x),
                              #kingdom, phylum, class, 
-                             #order = ifelse(!(is.na(genus_species.y)), order.y, order.x),
-                             #family = ifelse(!(is.na(genus_species.y)), family.y, family.x),
+                             order, family,
                              genus = ifelse(!(is.na(genus_species.y)), word(genus_species.y, 1), genus),
                              species = ifelse(!(is.na(genus_species.y)) & rank == "species",
                                               genus_species.y, NA_character_),
                              genus_species = ifelse(!(is.na(genus_species.y)), genus_species.y, genus_species.x),
                              rank, synonym)
 
-still_genus <- genus_match_SAL %>% 
-               dplyr::filter((str_count(genus_species, '\\s+')+1) == 1)
-
-sp_match <- genus_match_SAL %>% 
-            dplyr::filter(!(str_count(genus_species, '\\s+')+1) == 1) %>% 
-            mutate_if(is.logical, as.character)
-
-#dif <- setdiff(sal_taxa$genus_species, sp_match$genus_species) # taxa resolved in sal_taxa but not matched in sp_match
+manually_matched <- subset(genus_match_SAL, (user_supplied_name %in% sal_taxa$user_supplied_name))
 
 ########
+# dataframes of remaining unmatched taxa and 
+# remaining manual corrections (will be implemented by row replacement below)
 
+still_no_match <- subset(genus_match_SAL, !(user_supplied_name %in% sal_taxa$user_supplied_name))
+
+man_correct_remain <- subset(sal_taxa, !(user_supplied_name %in% manually_matched$user_supplied_name)) # taxa resolved in sal_taxa but not matched in sp_match
 
 ########
-# put together dataframes with new info from get_new_info function
+# put together dataframes with new info
 
-new_info <- tax_nf %>% 
-            full_join(tax_go) %>% 
-            dplyr::left_join(select(genus_only, user_supplied_name, kingdom,   # this and the transmute adds back in the higher rank info
-                             phylum, class, order, family), by = "user_supplied_name") %>% 
+new_sp_info <- tax_nf %>% 
+               full_join(tax_go) %>% 
+               dplyr::left_join(select(genus_only, user_supplied_name, kingdom,   # this and the transmute adds back in the higher rank info
+                                phylum, class, order, family), by = "user_supplied_name") %>% 
+               full_join(manually_matched) %>%  # df of manual corrections  
+               mutate(genus = ifelse(is.na(genus), word(genus_species, 1), genus),
+                      rank = ifelse(is.na(rank) & str_count(genus_species, '\\w+')%in% c(2,3),  
+                                "species", rank),
+                      kingdom = ifelse(is.na(kingdom), "Animalia", kingdom),
+                      phylum = ifelse(is.na(phylum), "Arthropoda", phylum),
+                      class = ifelse(is.na(class), "Insecta", class))
 
-            full_join(sp_match) %>%  # df of corrections to species from SAL
-  
-            full_join(gen_acc) %>%  # df of taxa where user supplied name was genus only to start with
-            mutate(genus = ifelse(is.na(genus), word(genus_species, 1), genus),
-                   rank = ifelse(is.na(rank) & str_count(genus_species, '\\w+')%in% c(2,3), 
-                                 "species")) 
-
-
-
+               
 #######################################################################
 ### Add unique IDs and combine species list and GBIF accepted names ###
 #######################################################################
-tax_final <- tax_acc %>%   
-             left_join(new_info, by = c("user_supplied_name")) %>%  # bind in the taxonomic names 
-             transmute(user_supplied_name, uid, 
+tax_final <- dplyr::filter(tax_acc, rank %in% c("species", "subspecies")) %>% # GBIF matches to species rank  
+             full_join(gen_acc) %>%  # df of taxa where user supplied name was genus only to start with
+             full_join(new_sp_info, by = c("user_supplied_name")) %>%  # bind in the new info from auto and manual resolution
+             transmute(user_supplied_name,  
                        rank = ifelse(is.na(rank.y), rank.x, rank.y),
-                       status = ifelse(is.na(status.y), status.x, status.y),
-                       matchtype = ifelse(is.na(matchtype.y), matchtype.x, matchtype.y),
-                       usagekey = ifelse(is.na(usagekey.y), usagekey.x, usagekey.y),
+                       status, matchtype, usagekey,
                        synonym = ifelse(is.na(synonym.y), synonym.x, synonym.y),
-                       acceptedusagekey = ifelse(is.na(acceptedusagekey.y), acceptedusagekey.x, acceptedusagekey.y),
+                       acceptedusagekey,
                        kingdom = ifelse(is.na(kingdom.y), kingdom.x, kingdom.y),
                        phylum = ifelse(is.na(phylum.y), phylum.x, phylum.y), 
                        class = ifelse(is.na(class.y), class.x, class.y), 
@@ -268,13 +263,16 @@ tax_final <- tax_acc %>%
                        species = ifelse(is.na(species.y), species.x, species.y),
                        genus_species = ifelse(is.na(genus_species.y), genus_species.x, genus_species.y),
                        taxonomy_system = ifelse(is.na(taxonomy_system.y), taxonomy_system.x, taxonomy_system.y),
-                       taxonomic_authority = ifelse(is.na(taxonomic_authority.y), taxonomic_authority.x, taxonomic_authority.y)) %>% 
+                       taxonomic_authority) %>% 
              dplyr::filter(!(is.na(user_supplied_name))) %>% # remove blank rows
              # add the unique ID column after all unique species are in one dataframe
              tibble::rowid_to_column("taxon_id")
 
 # duplicates
 dups <- tax_final %>% group_by(user_supplied_name) %>% filter(n()>1)
+
+# Bostrichidae
+bos <- tax_final %>% filter(family == "Bostrichidae")
 
 #####################################
 ### Write file                    ###
