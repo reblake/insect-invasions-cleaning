@@ -48,40 +48,18 @@ tax_class <- c("kingdom", "phylum", "class", "order", "family", "super_family",
 ### Make large table with all info
 
 # also correct mis-spellings of certain species based on expert review by A. Liebhold
+misspell <- read_csv("./data/raw_data/taxonomic_reference/misspelling_SAL_resolved.csv", trim_ws = TRUE)
 
 tax_df1 <- tax_df %>% 
            mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE)) %>% 
            mutate_at(.vars = vars(genus_species), .funs = list(~str_squish)) %>% 
-           mutate(genus_species = if_else(genus_species == "Acronota lugens", "Acrotona lugens", genus_species),
-                  genus_species = if_else(genus_species == "Continarinea pyrivora", "Contarinia pyrivora", genus_species),
-                  genus_species = if_else(genus_species == "Datamicra canescens", "Datomicra canescens", genus_species),
-                  genus_species = if_else(genus_species == "Datamicra celata", "Datomicra celata", genus_species),
-                  genus_species = if_else(genus_species == "Datamicra zosterae", "Datomicra zosterae", genus_species),
-                  genus_species = if_else(genus_species == "Evbrissa vittata", "Hemyda vittata", genus_species),
-                  genus_species = if_else(genus_species == "Hypomierogaster tiro", "Hypomicrogaster tiro", genus_species),
-                  genus_species = if_else(genus_species == "Oedophyrus helleri", "Oedophrys helleri", genus_species),
-                  genus_species = if_else(genus_species == "Tigonotylus tenius", "Trigonotylus tenius", genus_species),
-                  genus_species = if_else(genus_species == "Phyttalia（Opius） fletcheri", "Psyttalia fletcheri", genus_species),
-                  genus_species = if_else(genus_species == "Polyspilla polyspilla", "Calligrapha polyspila", genus_species),
-                  genus_species = if_else(genus_species == "Parasclerocoelus mediospinosa", "Limosina mediospinosa", genus_species),
-                  genus_species = if_else(genus_species == "Amphiareus eonstricta", "Amphiareus constrictus", genus_species),
-                  genus_species = if_else(genus_species == "Brumoides ohotai", "Brumoides ohtai", genus_species),
-                  genus_species = if_else(genus_species == "Caryedes serratus", "Caryedon serratus", genus_species),
-                  genus_species = if_else(genus_species == "Dimetrota cursors", "Atheta cursor", genus_species),
-                  genus_species = if_else(genus_species == "Allygidius modestus", "Allygus modestus", genus_species),
-                  genus_species = if_else(genus_species == "Ametadoria misella", "Anisia misella", genus_species),
-                  genus_species = if_else(genus_species == "Amischa curtipennis", "Quedius curtipennis", genus_species),
-                  genus_species = if_else(genus_species == "Amischa filaria", "Sipalia filaria", genus_species),
-                  genus_species = if_else(genus_species == "Artogeia canidia", "Pieris canidia", genus_species),
-                  genus_species = if_else(genus_species == "Altermetoponia rubriceps", "Inopus rubiceps", genus_species),
-                  genus_species = if_else(genus_species == "Helcystogramma sp nr phryganitis", "Helcystogramma sp", genus_species),
-                  genus_species = if_else(genus_species == "Laspeyresia pomonella", "Cydia pomonella", genus_species),
-                  genus_species = if_else(genus_species == "Labia anmdata", "Labia minor", genus_species),
-                  genus_species = if_else(genus_species == "Apanteles melanoscelus", "Cotesia melanoscelus", genus_species),
-                  genus_species = if_else(genus_species == "Biosteres oophilus oophilus", "Biosteres oophilus", genus_species),
-                  genus_species = if_else(genus_species == "Hylephila silvestris", "Thymelicus sylvestris", genus_species),
-                  genus_species = if_else(genus_species == "Pentaloma nigra", "Pentatoma nigra", genus_species)
-                  ) %>% 
+           mutate(user_supplied_name = genus_species) %>% 
+           full_join(misspell, by = "user_supplied_name") %>% 
+           transmute(phylum, class, order, family, super_family, user_supplied_name, 
+                     genus_species = ifelse(!is.na(genus_species.y), genus_species.y, genus_species.x ),
+                     genus = word(genus_species, 1),
+                     species = word(genus_species, 2),
+                     taxonomy_system, taxonomic_authority) %>% 
            distinct(genus_species) %>%  # remove species duplicates          
            dplyr::arrange(genus_species) # arrange alphabetically
   
@@ -91,7 +69,7 @@ tax_df1 <- tax_df %>%
 # make character vector of names only to genus
 g_sp <- grep('\\<sp\\>', tax_df1$genus_species, value=TRUE) 
 g_spp <- grep('\\<sp.\\>', tax_df1$genus_species, value=TRUE)
-bard <- as.character(dplyr::filter(tax_df1, genus_species == "Curculionidae")) # include family here
+bard <- grep('\\<gen\\>', tax_df1$genus_species, value=TRUE) # include sub-family here
 tax_vec_gn <- c(g_sp, g_spp, bard) %>% gsub(" [a-zA-Z0-9]*", "", .) %>% 
               magrittr::extract(!(. == "Tasconotus")) # remove this species
 
@@ -99,7 +77,7 @@ tax_vec_gn <- c(g_sp, g_spp, bard) %>% gsub(" [a-zA-Z0-9]*", "", .) %>%
 tax_vec_sp <- unlist(tax_df1$genus_species, use.names = FALSE) %>% 
               magrittr::extract(!(. %in% g_sp)) %>% 
               magrittr::extract(!(. %in% g_spp)) %>% 
-              magrittr::extract(!(. == "Curculionidae")) # this family put with genus above
+              magrittr::extract(!(. == "Baridinae")) # this family put with genus above
 
 
 #####################################
@@ -223,22 +201,22 @@ genus_matches <- no_lower_genus %>%
                  mutate(genus = matched_name2) %>% 
                  dplyr::rename(genus_species = matched_name2)
 
-# bring in hand corrections from A. Liebhold's research
+# bring in manual corrections 
 sal_taxa <- read_csv("./data/raw_data/taxonomic_reference/genus_only_resolution_FIXED.csv", trim_ws = TRUE)
 
-# add A. Liebhold's research to correct genus-level only matches
+# add manual corrections to correct genus-level only matches
 genus_match_SAL <- genus_matches %>% 
-                   full_join(sal_taxa, by = "user_supplied_name") %>% 
+                   left_join(sal_taxa, by = "user_supplied_name") %>% 
                    transmute(user_supplied_name, 
                              taxonomy_system = ifelse(!(is.na(genus_species.y)), taxonomy_system.y, taxonomy_system.x),
-                             kingdom, phylum, class, 
-                             order = ifelse(!(is.na(genus_species.y)), order.y, order.x),
-                             family = ifelse(!(is.na(genus_species.y)), family.y, family.x),
+                             #kingdom, phylum, class, 
+                             #order = ifelse(!(is.na(genus_species.y)), order.y, order.x),
+                             #family = ifelse(!(is.na(genus_species.y)), family.y, family.x),
                              genus = ifelse(!(is.na(genus_species.y)), word(genus_species.y, 1), genus),
                              species = ifelse(!(is.na(genus_species.y)) & rank == "species",
                                               genus_species.y, NA_character_),
                              genus_species = ifelse(!(is.na(genus_species.y)), genus_species.y, genus_species.x),
-                             rank, synonym, uid)
+                             rank, synonym)
 
 still_genus <- genus_match_SAL %>% 
                dplyr::filter((str_count(genus_species, '\\s+')+1) == 1)
@@ -257,9 +235,15 @@ sp_match <- genus_match_SAL %>%
 
 new_info <- tax_nf %>% 
             full_join(tax_go) %>% 
+            dplyr::left_join(select(genus_only, user_supplied_name, kingdom,   # this and the transmute adds back in the higher rank info
+                             phylum, class, order, family), by = "user_supplied_name") %>% 
+
             full_join(sp_match) %>%  # df of corrections to species from SAL
+  
             full_join(gen_acc) %>%  # df of taxa where user supplied name was genus only to start with
-            mutate(genus = ifelse(is.na(genus), word(genus_species, 1), genus)) 
+            mutate(genus = ifelse(is.na(genus), word(genus_species, 1), genus),
+                   rank = ifelse(is.na(rank) & str_count(genus_species, '\\w+')%in% c(2,3), 
+                                 "species")) 
 
 
 

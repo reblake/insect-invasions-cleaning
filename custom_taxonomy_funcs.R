@@ -172,7 +172,7 @@ get_more_info <- function(taxa_name){
                                        Sys.sleep(3)  
                                        c <- tax_name(taxa_name, 
                                                      get = c("kingdom", "phylum", "class", "order", "family", "genus", "species"), 
-                                                     db = tolower(id_res$taxonomy_system))
+                                                     db = "both")
                                      if (is.na(c$kingdom)|is.na(c$genus)|is.na(c$order)) {id_res
                                         } else {
                                           Sys.sleep(5)   
