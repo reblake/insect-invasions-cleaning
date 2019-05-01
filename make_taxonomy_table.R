@@ -223,9 +223,11 @@ manually_matched <- subset(genus_match_SAL, (user_supplied_name %in% sal_taxa$us
 # dataframes of remaining unmatched taxa and 
 # remaining manual corrections (will be implemented by row replacement below)
 
+# taxa still missing a genus match
 still_no_match <- subset(genus_match_SAL, !(user_supplied_name %in% sal_taxa$user_supplied_name))
 
-man_correct_remain <- subset(sal_taxa, !(user_supplied_name %in% manually_matched$user_supplied_name)) # taxa resolved in sal_taxa but not matched in sp_match
+# taxa included in sal_taxa but not matched in genus_matches (could be from interception data)
+man_correct_remain <- subset(sal_taxa, !(user_supplied_name %in% manually_matched$user_supplied_name)) 
 
 ########
 # put together dataframes with new info
@@ -244,11 +246,11 @@ new_sp_info <- tax_nf %>%
 
                
 #######################################################################
-### Add unique IDs and combine species list and GBIF accepted names ###
+### Combine species list and GBIF accepted names                    ###
 #######################################################################
-tax_final <- dplyr::filter(tax_acc, rank %in% c("species", "subspecies")) %>% # GBIF matches to species rank  
+tax_combo <- dplyr::filter(tax_acc, rank %in% c("species", "subspecies")) %>% # GBIF matches to species rank  
              full_join(gen_acc) %>%  # df of taxa where user supplied name was genus only to start with
-             full_join(new_sp_info, by = c("user_supplied_name")) %>%  # bind in the new info from auto and manual resolution
+             full_join(new_sp_info, by = "user_supplied_name") %>%  # bind in the new info from auto and manual resolution
              transmute(user_supplied_name,  
                        rank = ifelse(is.na(rank.y), rank.x, rank.y),
                        status, matchtype, usagekey,
@@ -264,15 +266,41 @@ tax_final <- dplyr::filter(tax_acc, rank %in% c("species", "subspecies")) %>% # 
                        genus_species = ifelse(is.na(genus_species.y), genus_species.x, genus_species.y),
                        taxonomy_system = ifelse(is.na(taxonomy_system.y), taxonomy_system.x, taxonomy_system.y),
                        taxonomic_authority) %>% 
-             dplyr::filter(!(is.na(user_supplied_name))) %>% # remove blank rows
+             dplyr::filter(!(is.na(user_supplied_name))) # remove blank rows
+
+# subset remaining manual fixes for those user supplied names that are in tax_combo to get rows that need to be replaced
+# rows_2_replace <- subset(man_correct_remain, (user_supplied_name %in% tax_combo$user_supplied_name)) 
+
+# replace rows with new info, and add rows from interception data
+tax_final <- tax_combo %>% 
+             full_join(man_correct_remain, by = "user_supplied_name") %>% 
+             transmute(user_supplied_name, 
+                       status = ifelse(!is.na(rank.y), NA_character_, status), 
+                       matchtype = ifelse(!is.na(rank.y), NA_character_, matchtype), 
+                       usagekey = ifelse(!is.na(rank.y), NA_character_, usagekey), 
+                       rank = ifelse(!is.na(rank.y), rank.y, rank.x), 
+                       synonym = ifelse(!is.na(rank.y), synonym.y, synonym.x),
+                       acceptedusagekey = ifelse(!is.na(rank.y), NA_character_, acceptedusagekey), 
+                       kingdom, phylum, class, 
+                       order = ifelse(!is.na(order.y), order.y, order.x),
+                       family = ifelse(!is.na(family.y), family.y, family.x),
+                       genus = ifelse(!is.na(family.y), word(genus_species.y, 1), genus),
+                       species = ifelse(!is.na(family.y), word(genus_species.y, 2), species), 
+                       genus_species = ifelse(!is.na(genus_species.y), genus_species.y, genus_species.x),
+                       taxonomy_system = ifelse(!is.na(taxonomy_system.y), taxonomy_system.y, taxonomy_system.x),
+                       taxonomic_authority = ifelse(!is.na(rank.y), NA_character_, taxonomic_authority)) %>% 
+             mutate(kingdom = ifelse(is.na(kingdom), "Animalia", kingdom),
+                    phylum = ifelse(is.na(phylum), "Arthropoda", phylum),
+                    class = ifelse(is.na(class), "Insecta", class),
+                    genus_species = ifelse(genus_species == "species not found", NA_character_, genus_species)) %>% 
              # add the unique ID column after all unique species are in one dataframe
              tibble::rowid_to_column("taxon_id")
 
 # duplicates
-dups <- tax_final %>% group_by(user_supplied_name) %>% filter(n()>1)
+# dups <- tax_final %>% group_by(user_supplied_name) %>% filter(n()>1)
 
 # Bostrichidae
-bos <- tax_final %>% filter(family == "Bostrichidae")
+# bos <- tax_final %>% filter(family == "Bostrichidae")
 
 #####################################
 ### Write file                    ###
