@@ -17,7 +17,7 @@ separate_taxonomy <- function(df_location){
                              select_all(tolower) %>%  # make all column names lower case
                              mutate_all(~gsub("\\b([[:upper:]])([[:upper:]]+)",
                                               "\\U\\1\\L\\2", . , perl=TRUE)) %>% 
-                             mutate_all(~gsub("\\.", "", .))
+                             mutate_all(~gsub("\\.", "", .)) 
                      
                      # define what taxonomic columns might be named        
                      tax_class <- c("kingdom", "phylum", "class", "order", "family", 

@@ -37,7 +37,8 @@ tax_df <- tax_list %>%
           purrr::reduce(full_join) %>%  
           mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE)) %>% 
           dplyr::rename(taxonomic_authority = authority) %>% 
-          dplyr::arrange(genus_species) 
+          dplyr::arrange(genus_species) %>% 
+          dplyr::filter(!(genus_species == "Baridinae gen"))
 
 # define what taxonomic columns might be named        
 tax_class <- c("kingdom", "phylum", "class", "order", "family", "super_family",
@@ -149,7 +150,7 @@ no_lower <- tax_go_l %>%
                            matched_name2 == "species not found") 
 )
 
-# from no_lower, the one that was not found
+# from no_lower, the not found
 no_lower_not_found <- no_lower %>% filter(matched_name2 == "species not found")
 
 # from no_lower, the genus_only matches
@@ -300,7 +301,10 @@ tax_final <- tax_combo %>%
 # dups <- tax_final %>% group_by(user_supplied_name) %>% filter(n()>1)
 
 # Bostrichidae
-# bos <- tax_final %>% filter(family == "Bostrichidae")
+# bos <- tax_combo %>% filter(family == "Bostrichidae")
+
+# Rutelidae, Melolonthidae, and Dynastidae
+# RMD <- tax_combo %>% filter(family %in% c("Rutelidae", "Melolonthidae", "Dynastidae"))
 
 #####################################
 ### Write file                    ###
