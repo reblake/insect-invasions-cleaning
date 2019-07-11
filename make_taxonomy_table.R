@@ -53,7 +53,7 @@ misspell <- read_csv("./data/raw_data/taxonomic_reference/misspelling_SAL_resolv
 
 tax_df1 <- tax_df %>% 
            mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE)) %>% 
-           mutate_at(.vars = vars(genus_species), .funs = list(~str_squish)) %>% 
+           mutate_at(vars(genus_species), str_squish) %>% 
            mutate(user_supplied_name = genus_species) %>% 
            full_join(misspell, by = "user_supplied_name") %>% 
            transmute(phylum, class, order, family, super_family, user_supplied_name, 
