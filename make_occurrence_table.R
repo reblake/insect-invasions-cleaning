@@ -5,7 +5,10 @@
 ####################################################################
 
 # Load packages needed for this script
-library(tidyverse) ; library(readxl) ; library(purrr)
+library(tidyverse) ; library(readxl) ; library(purrr) ; library(countrycode)
+
+# source the custom functions 
+source("./custom_taxonomy_funcs.R")
 
 # set working directory
 setwd("/nfs/insectinvasions-data")
@@ -26,47 +29,6 @@ file_listp <- paste0("./data/raw_data/raw_by_country/", file_list)         # add
 ### Making the occurrence table   ###
 #####################################
 
-separate_occurrence <- function(df_location){
-                       # reads the excel file in
-                       df <- read_excel(df_location) 
-
-                       # clean up column names, capitalization, etc.
-                       df_1 <- df %>% 
-                               # replace " " and "." with "_" in column names
-                               select_all(~gsub("\\s+|\\.", "_", .)) %>%  
-                               select_all(tolower) %>%  # make all column names lower case
-                               mutate_all(~gsub("\\b([[:upper:]])([[:upper:]]+)",
-                                                "\\U\\1\\L\\2", . , perl=TRUE))
-                      
-                       # define region
-                       file_name <- sapply(strsplit(as.character(df_location), split="/") , function(x) x[5])
-                       country_nm <- sapply(strsplit(as.character(file_name), split="_") , function(x) x[1])
-                         
-                       
-                       df_2 <- df_1 %>% 
-                               # split off any columns that are not relevant
-                               select(-one_of("kingdom", "phylum", "class", "order", "family", 
-                                              "genus", "species", "authority", "super_family", 
-                                              "suborder", "author", "common_name", "taxonomy_system",
-                                              "phagy", "host_group", "intentionalrelease", "pest_type",
-                                              "jp_name", "source", "reference", "status", "synonym",
-                                              "origin2", "tsn", "comment", "original_species_name",
-                                              "rank", "name_changed___1_yes__0__no_", "phagy_main",
-                                              "feeding_type", "feeding_main", "size_mm_", "dist",
-                                              "current_distribution_cosmopolitan_", "town", "rege_date_source",
-                                              "nz_area_code", "life_form", "data_quality", "first_record_orig",
-                                              "confirmed_establishment"
-                                              )) %>%   
-                               # add the name of the country as a column
-                               mutate(region = country_nm)
-                       
-                        
-                       # return df_2 
-                       return(df_2)
-                       
-                       }
-
-
 # apply that function over the list of dataframes
 occurr_list <- lapply(file_listp, separate_occurrence) 
 
@@ -80,13 +42,76 @@ df_occurr <- occurr_list %>%
              # fill in country column with canada_or_us info
              mutate(country = ifelse(is.na(country) & canada_or_us %in% c("Canada", "Us", "Us, may not actually be adventive"), 
                                      canada_or_us, country),
-                    present_status = ifelse(present_status == "Na", NA, present_status)) %>% 
-             mutate(year = ifelse(year == -999, NA, year)) %>% 
+                    present_status = ifelse(present_status == "Na", NA, present_status),
+                    notes = ifelse(country == "Us, may not actually be adventive", "may not actually be adventive", ""),
+                    country = ifelse(country == "Us, may not actually be adventive", "Us", country),
+                    notes = ifelse(origin == "New insect record for 1960  purposeful introduction", 
+                                   "New insect record for 1960  purposeful introduction", ""),
+                    origin = ifelse(origin == "New insect record for 1960  purposeful introduction",
+                                    "", origin),
+                    notes = ifelse(origin == "New insect record for 1963, chance immigrant", 
+                                   "New insect record for 1963, chance immigrant", ""),
+                    origin = ifelse(origin == "New insect record for 1963, chance immigrant",
+                                    "", origin)
+                    ) %>% 
+             # clean up/fill in country column
+             mutate(year = ifelse(year == -999, NA, year),
+                    country = ifelse(region %in% c("Okinawa", "Ogasawara", "Japan"), "Japan", country),
+                    country = ifelse(region == "Hawaii", "Us", country),
+                    country = ifelse(region == "Korea", "Korea", country),
+                    country = ifelse(region == "New Zealand", "New Zealand", country),
+                    notes = ifelse(grepl("Proceedings of the", .$origin), origin, notes),
+                    origin = ifelse(grepl("Proceedings of the", .$origin), "", origin)) %>% 
+             # clean up origin column
+             mutate(origin = gsub("&", "", origin),
+                    origin = gsub("Indomaraya|indomalaya", "Indomalaya", origin),
+                    origin = gsub("IndomalayaOceania", "Indomalaya, Oceania", origin),
+                    origin = gsub("Middle East", "Middle_East", origin),
+                    origin = gsub("cosmopolitan|Cosmoploitan", "Cosmopolitan", origin),
+                    origin = gsub("S.\\sAfrica|Sth\\sAfrica", "South_Africa", origin),
+                    origin = gsub("\\(Taiwan", "Taiwan", origin),
+                    origin = gsub("\\(Okinawa|\\(Okinawa\\)", "Okinawa", origin),
+                    origin = gsub("\\(Ogasawara", "Ogasawara", origin),
+                    origin = gsub("\\(Java", "Java", origin),
+                    origin = gsub("N.\\sAmerica", "North_America", origin),
+                    origin = gsub("S.\\sAmerica", "South_America", origin),
+                    origin = gsub("C.\\sAmerica", "Central_America", origin),
+                    origin = gsub("Palearctic\\(Asia\\)|Plearctic\\(Asia\\)", "Palearctic_Asia", origin),
+                    origin = gsub("Palearctic\\s\\(Asia\\)|Paleartic\\(Asia\\)", "Palearctic_Asia", origin),
+                    origin = gsub("Ppalearctic\\(Asia\\)|Palearctic\\(Asia", "Palearctic_Asia", origin),
+                    origin = gsub("Palearctic\\s\\(Asia|Paleartic\\(Asia", "Palearctic_Asia", origin),
+                    origin = gsub("Palearctic\\s\\(E.\\sAsia|Palearctic\\s\\(Central\\sAsia", "Palearctic_Asia", origin),
+                    origin = gsub("Palearctic\\(Europe\\)|Palearctic\\s\\(Europe\\)", "Palearctic_Europe", origin),
+                    origin = gsub("alearctic\\(Europe\\)|Palearctic\\(Europe", "Palearctic_Europe", origin),
+                    origin = gsub("Palearctic\\s\\(Europe|Paleartic\\(Europe", "Palearctic_Europe", origin),
+                    origin = gsub("Parearctic\\(Europe", "Palearctic_Europe", origin),
+                    origin = gsub("Palearctic\\s\\(Eurasia", "Palearctic_Europe, Palearctic_Asia", origin),
+                    origin = gsub("Palearctic\\(Europe\\)Nearctic", "Palearctic_Europe, Nearctic", origin),
+                    origin = gsub("Nearctic Nearctic", "Nearctic", origin),
+                    origin = gsub("Nearctic\\(Europe\\)", "Palearctic_Europe", origin),
+                    origin = gsub("\\\"Old World\\\"\\/Europe", "Old_World_Europe", origin),
+                    origin = gsub("Sri\\sLanka\\sor\\sAustralasia\\?\\s\\(Dugdale,\\s1988", "Sri Lanka Australasia", origin),
+                    origin = gsub("C\\/C.\\sAmerica\\?\\sOld\\sworld\\stropics\\s\\(Mound\\s&\\sWalker,\\s1982", 
+                                  "Cosmopolitan, Central_America, Old_World_tropics", origin),
+                    origin = gsub(" ", ", ", origin),
+                    origin = gsub(", , ", ", ", origin),
+                    # origin = gsub(",", ", ", origin),
+                    origin = gsub(",, ", ", ", origin) 
+                    
+                    # origin = strsplit(origin, ", ")
+                    # origin = gsub("\\b", '"', origin, perl=T)
+                    ) %>% 
+             # add country codes for country and origin columns
+             mutate(country_code = countrycode(country, "country.name", "iso3n", warn = TRUE),
+                    origin_code = countrycode(origin, "country.name", "iso3n", warn = TRUE)) %>% 
              dplyr::select(-canada_or_us, -nz_region) %>% 
              dplyr::arrange(genus_species) 
 
 # add the unique ID column and delete genus species column(s)
 tax_table <- read.csv("./data/clean_data/taxonomy_table.csv", stringsAsFactors=F)  # read in the taxonomy table
+
+# get ISO codes for country
+
 
 # make final occurrence dataframe
 occurr_df <- df_occurr %>%

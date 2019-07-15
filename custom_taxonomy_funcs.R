@@ -199,3 +199,44 @@ get_more_info <- function(taxa_name){
                       }
                  }
 ######################
+
+######################
+separate_occurrence <- function(df_location){
+                       # reads the excel file in
+                       df <- read_excel(df_location) 
+  
+                       # clean up column names, capitalization, etc.
+                       df_1 <- df %>% 
+                               # replace " " and "." with "_" in column names
+                               select_all(~gsub("\\s+|\\.", "_", .)) %>%  
+                               select_all(tolower) %>%  # make all column names lower case
+                               mutate_all(~gsub("\\b([[:upper:]])([[:upper:]]+)",
+                                                "\\U\\1\\L\\2", . , perl=TRUE))
+                       
+                       # define region
+                       file_name <- sapply(strsplit(as.character(df_location), split="/") , function(x) x[5])
+                       country_nm <- sapply(strsplit(as.character(file_name), split="_") , function(x) x[1])
+  
+  
+                       df_2 <- df_1 %>% 
+                               # split off any columns that are not relevant
+                               select(-one_of("kingdom", "phylum", "class", "order", "family", 
+                                              "genus", "species", "authority", "super_family", 
+                                              "suborder", "author", "common_name", "taxonomy_system",
+                                              "phagy", "host_group", "intentionalrelease", "pest_type",
+                                              "jp_name", "source", "reference", "status", "synonym",
+                                              "origin2", "tsn", "comment", "original_species_name",
+                                              "rank", "name_changed___1_yes__0__no_", "phagy_main",
+                                              "feeding_type", "feeding_main", "size_mm_", "dist",
+                                              "current_distribution_cosmopolitan_", "town", "rege_date_source",
+                                              "nz_area_code", "life_form", "data_quality", "first_record_orig",
+                                              "confirmed_establishment"
+                                              )) %>% 
+                               # add the name of the country as a column
+                               mutate(region = country_nm)
+                          
+                               # return df_2 
+                               return(df_2)
+                       }
+
+
