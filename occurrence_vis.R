@@ -30,7 +30,7 @@ occ_c <- occ %>%
                 region = replace(region, region %in% c("Corse", "Sicily", "Sardinia"), "Italy"))
 
 occ2 <- occ_c %>% 
-        select(country, region, year, genus_species) %>% 
+        select(region, year, genus_species) %>% 
         group_by(region) %>% 
         count() %>% 
         ungroup() %>% 
@@ -39,9 +39,11 @@ occ2 <- occ_c %>%
 
 p2 <- p1 + 
       geom_map(data=occ2, map=world_data, aes(map_id=region, fill=n)) +
-      scale_fill_gradient(low="lightgreen", high="darkgreen")
+      scale_fill_gradient(low="lightgreen", high="darkgreen") +
+      theme(plot.margin = margin(0,0,0,0, "mm"),
+            plot.background = element_blank())
 
-p2
+#p2
 
 # leaflet
 
@@ -63,9 +65,10 @@ markers <- aggregate(genus_species ~ lat + long + region, occ3, paste, collapse 
 
 
 L1 <- leaflet(options = leafletOptions(minZoom = 1.5)) %>%
-      addTiles() %>%
+      addTiles(options=providerTileOptions(noWrap = TRUE)) %>%
       addMarkers(data = markers, popup = markers$genus_species,  
-                 label = markers$region, group = "hover")  
+                 label = markers$region, group = "hover") %>% 
+      setView(lat = 30, lng = 0, zoom = 1.75)
 
-L1
+#L1
  

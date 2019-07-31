@@ -1,0 +1,26 @@
+---
+output: 
+  html_document
+---
+
+# Data Visualizations for Insect Invasions pursuit 
+
+```{r, echo = FALSE, include = FALSE}
+library(here) 
+source("occurrence_vis.R")
+```
+
+
+This is a map of occurrence data, with color indicating number of species in each country.
+
+```{r, echo = FALSE, out.width = "100%", out.height = "10in", fig.align="center"}
+p2
+```
+
+
+This interactive map shows occurrence data, and lists the speceis in each country.
+
+```{r, echo = FALSE, fig.dim = c(10, 8), out.width = "100%", fig.align="center"}
+L1
+```
+

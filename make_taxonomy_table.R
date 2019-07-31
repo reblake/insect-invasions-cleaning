@@ -203,7 +203,8 @@ genus_matches <- no_lower_genus %>%
                  dplyr::rename(genus_species = matched_name2)
 
 # bring in manual corrections 
-sal_taxa <- read_csv("./data/raw_data/taxonomic_reference/genus_only_resolution_FIXED.csv", trim_ws = TRUE)
+sal_taxa <- read_csv("./data/raw_data/taxonomic_reference/genus_only_resolution_FIXED.csv", trim_ws = TRUE,
+                     col_types = cols(up_to_date_name = col_character()))
 
 # add manual corrections to correct genus-level only matches
 genus_match_SAL <- genus_matches %>% 

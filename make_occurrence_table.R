@@ -8,7 +8,7 @@
 library(tidyverse) ; library(readxl) ; library(purrr) ; library(countrycode)
 
 # source the custom functions 
-source("./custom_taxonomy_funcs.R")
+#source("./custom_taxonomy_funcs.R")
 
 # set working directory
 setwd("/nfs/insectinvasions-data")
@@ -109,9 +109,6 @@ df_occurr <- occurr_list %>%
 
 # add the unique ID column and delete genus species column(s)
 tax_table <- read.csv("./data/clean_data/taxonomy_table.csv", stringsAsFactors=F)  # read in the taxonomy table
-
-# get ISO codes for country
-
 
 # make final occurrence dataframe
 occurr_df <- df_occurr %>%
