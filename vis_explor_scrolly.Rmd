@@ -1,0 +1,50 @@
+---
+title: "Data Visualizations for Insect Invasions pursuit "
+output: rolldown::scrollama
+---
+
+```{css, echo=FALSE}
+.level1 {
+  min-height: 400px;
+  border: 1px solid;
+  margin-bottom: 4em;
+  padding: 1em 2em 2em;
+}
+.is-active {
+  background-color: azure;
+}
+body {
+  margin-bottom: 20vh;
+}
+```
+
+
+```{r, echo = FALSE, include = FALSE}
+library(here) 
+source("occurrence_vis.R")
+```
+
+
+# Density Map
+
+This is a map of occurrence data, with color indicating number of species in each country.
+
+```{r, echo = FALSE, out.width = "100%", out.height = "10in", fig.align="center"}
+p2
+```
+
+
+# Interactive Map
+
+This interactive map shows occurrence data, and lists the speceis in each country.
+
+```{r, echo = FALSE, fig.dim = c(10, 8), out.width = "100%", fig.align="center"}
+L1
+```
+
+
+```{r, echo = FALSE}
+rolldown::scrollama_setup(
+  list(step = '.level1', offset = .2, debug = FALSE)
+)
+```
