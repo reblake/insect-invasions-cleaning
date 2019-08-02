@@ -1,0 +1,54 @@
+---
+output: 
+  html_document
+---
+
+# Insect Invasions Pursuit @ SESYNC                        
+Example script to combine tables created by Rachael Blake    08/01/2019                 
+
+
+## Combine taxonomy table with a table of interest
+
+```{r, message = FALSE}
+library(tidyverse)
+```
+
+Read in the taxonomy table.
+```{r}
+tax_table <- read_csv("/nfs/insectinvasions-data/data/clean_data/taxonomy_table.csv")
+```
+
+Read in the occurrence table.
+```{r}
+occ_table <- read_csv("/nfs/insectinvasions-data/data/clean_data/occurrence_table.csv",
+                      col_types = "dcccdccccdcc", trim_ws = TRUE)
+```
+
+Join tables.
+```{r}
+l_join <- occ_table %>% 
+          left_join(tax_table, by = "taxon_id")
+
+```
+
+
+This code below is for trouble shooting the discrepencies between tables.
+```{r, eval = FALSE, include = FALSE}
+t <- tax_table$user_supplied_name
+o <- occ_table$user_supplied_name
+
+t_miss <- o[!o %in% t]
+o_miss <- t[!t %in% o]
+
+t_word <- filter(tax_table, (str_count(user_supplied_name, '\\s+')+1) == 1)
+```
+
+
+```{r, eval = FALSE, include = FALSE}
+j_miss <- l_join[is.na(l_join$taxon_id),]
+
+```
+
+
+
+
