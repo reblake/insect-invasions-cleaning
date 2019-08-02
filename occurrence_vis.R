@@ -1,8 +1,6 @@
-library(ggplot2)
-library(maps)
-library(mapproj)
-library(tidyverse)
-library(leaflet)
+library(ggplot2) ; library(ggthemes) ; library(maps) ; 
+library(mapproj) ; library(tidyverse) ; library(leaflet)
+library(gganimate) ; library(viridis)
 
 # set working directory
 setwd("/nfs/insectinvasions-data")
@@ -15,7 +13,7 @@ world_data <- fortify(world_data)
 p1 <- ggplot() + 
       geom_map(data=world_data, map=world_data, aes(x=long, y=lat, group=group, map_id=region),
                fill="white", colour="#7f7f7f", size=0.5) +
-      coord_map("rectangular", lat0=0, xlim=c(-180,180), ylim=c(-60, 90))
+      coord_map("mollweide", xlim=c(-180,180), ylim=c(-60, 90))
 
 # occurrence data
 occ <- read.csv("./data/clean_data/occurrence_table.csv", stringsAsFactors = FALSE)
@@ -37,13 +35,30 @@ occ2 <- occ_c %>%
         full_join(world_data, by = "region") %>% 
         dplyr::filter(!is.na(n), !is.na(region), !is.na(long))
 
+occ3 <- occ_c %>% 
+        select(region, year, genus_species) %>% 
+        group_by(region, year) %>% 
+        count() %>% 
+        ungroup() %>% 
+        full_join(world_data, by = "region") %>% 
+        mutate_at("year", as.numeric) %>% 
+        dplyr::filter(complete.cases(.))
+
 p2 <- p1 + 
       geom_map(data=occ2, map=world_data, aes(map_id=region, fill=n)) +
       scale_fill_gradient(low="lightgreen", high="darkgreen") +
       theme(plot.margin = margin(0,0,0,0, "mm"),
-            plot.background = element_blank())
+            plot.background = element_blank()) 
 
-#p2
+# gganimate
+yr_colors <- c("white", viridis(208))
+p3 <- ggplot() + borders("world", colour = "black", fill = "white") +
+      geom_map(data=occ3, map=world_data, aes(map_id=region, fill=year), alpha = 0.3) +
+      scale_fill_gradientn(colors = yr_colors) +
+      transition_reveal(year) +
+      ease_aes("linear")
+# make the animation
+animate(p3, nframes = 100, fps = 10, height = 604, width = 1000)
 
 # leaflet
 

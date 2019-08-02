@@ -39,6 +39,7 @@ df_occurr <- occurr_list %>%
              # filter out USA and Canada data from Seebens - keep Sandy's North America data
              dplyr::filter(!(region == "Europe" & country %in% c("Usacanada", "United States")),
                            !is.na(genus_species)) %>% 
+             mutate_all(~gsub("\xa0", " ", . , perl=TRUE)) %>% 
              # fill in country column with canada_or_us info
              mutate(country = ifelse(is.na(country) & canada_or_us %in% c("Canada", "Us", "Us, may not actually be adventive"), 
                                      canada_or_us, country),
@@ -101,9 +102,14 @@ df_occurr <- occurr_list %>%
                     # origin = strsplit(origin, ", ")
                     # origin = gsub("\\b", '"', origin, perl=T)
                     ) %>% 
+             mutate(genus_species = gsub("Mycetophila\xa0propria", "Mycetophila propria", genus_species),
+                    genus_species = gsub("Mycetophila\xa0vulgaris", "Mycetophila vulgaris", genus_species),
+                    genus_species = gsub("Mycetophila\xa0marginepunctata", "Mycetophila marginepunctata", genus_species),
+                    ) %>%         
              # add country codes for country and origin columns
              mutate(country_code = countrycode(country, "country.name", "iso3n", warn = TRUE),
                     origin_code = countrycode(origin, "country.name", "iso3n", warn = TRUE)) %>% 
+             mutate(user_supplied_name = gsub("\xa0", " ", . , perl=TRUE)) %>% # trying to get rid of weird characters
              dplyr::select(-canada_or_us, -nz_region) %>% 
              dplyr::arrange(genus_species) 
 

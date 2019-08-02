@@ -17,6 +17,12 @@ This is a map of occurrence data, with color indicating number of species in eac
 p2
 ```
 
+This is a map of occurrence data, with color indicating year of first invasion.
+
+```{r, echo = FALSE, out.width = "100%", out.height = "10in", fig.align="center"}
+animate(p3, nframes = 100, fps = 10, height = 604, width = 1000)
+```
+
 
 This interactive map shows occurrence data, and lists the speceis in each country.
 

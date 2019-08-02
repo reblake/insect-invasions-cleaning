@@ -233,7 +233,8 @@ separate_occurrence <- function(df_location){
                                               "confirmed_establishment"
                                               )) %>% 
                                # add the name of the country as a column
-                               mutate(region = country_nm)
+                               mutate(region = country_nm) %>% 
+                               mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE))
                           
                                # return df_2 
                                return(df_2)
