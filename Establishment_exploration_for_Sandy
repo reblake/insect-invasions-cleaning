@@ -52,3 +52,22 @@ coretable2$all.year<-as.numeric(coretable2$all.year) # converting to numeric
 
 # dataframe with first occurance year for each species/region combination
 coretable3<-aggregate(coretable2$all.year,by=list(order=coretable2$all.order,family=coretable2$all.family,genus=coretable2$all.genus,genus_species=coretable2$all.genus_species.y,region=coretable2$all.region),FUN=min)
+
+coretable3[coretable3$x==2020,"x"]<-1900 # assigning the occurances with unknown dates the year 1900
+
+# creating cummulative table by decade for each order/region combination
+temp<-coretable3[coretable3$x<1910,]
+temp2<-aggregate(temp$x,by=list(order=temp$order,region=temp$region),FUN=length)
+temp2$year<-1910
+for (i in 1:11){
+  temp<-coretable3[coretable3$x<1910+i*10,]
+  temp3<-aggregate(temp$x,by=list(order=temp$order,region=temp$region),FUN=length)
+  temp3$year<-1910+i*10
+  temp2<-bind_rows(temp2,temp3)
+}
+
+# subseting dataframe to six main orders of interest
+Estcum<-temp2[temp2$order%in%c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera","Thysanoptera"),]
+
+# ploting by Region and Order
+ggplot(Estcum,aes(x=year,y=x,colour=order))+geom_line()+facet_wrap(.~region)
