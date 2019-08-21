@@ -39,7 +39,7 @@ df_occurr <- occurr_list %>%
              # filter out USA and Canada data from Seebens - keep Sandy's North America data
              dplyr::filter(!(region == "Europe" & country %in% c("Usacanada", "United States")),
                            !is.na(genus_species)) %>% 
-             mutate_all(~gsub("\xa0", " ", . , perl=TRUE)) %>% 
+             mutate_all(~gsub("\\xa0", " ", . , perl=TRUE)) %>% 
              # fill in country column with canada_or_us info
              mutate(country = ifelse(is.na(country) & canada_or_us %in% c("Canada", "Us", "Us, may not actually be adventive"), 
                                      canada_or_us, country),

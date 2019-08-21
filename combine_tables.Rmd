@@ -20,8 +20,8 @@ tax_table <- read_csv("/nfs/insectinvasions-data/data/clean_data/taxonomy_table.
 
 Read in the occurrence table.
 ```{r}
-occ_table <- read_csv("/nfs/insectinvasions-data/data/clean_data/occurrence_table.csv",
-                      col_types = "dcccdccccdcc", trim_ws = TRUE)
+occ_table <- read.csv("/nfs/insectinvasions-data/data/clean_data/occurrence_table.csv",
+                      stringsAsFactors = FALSE)
 ```
 
 Join tables.
