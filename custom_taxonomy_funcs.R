@@ -223,14 +223,13 @@ separate_occurrence <- function(df_location){
                                select(-one_of("kingdom", "phylum", "class", "order", "family", 
                                               "genus", "species", "authority", "super_family", 
                                               "suborder", "author", "common_name", "taxonomy_system",
-                                              "phagy", "host_group", "intentionalrelease", "pest_type",
+                                              "phagy", "host_group", "pest_type",
                                               "jp_name", "source", "reference", "status", "synonym",
                                               "origin2", "tsn", "comment", "original_species_name",
                                               "rank", "name_changed___1_yes__0__no_", "phagy_main",
-                                              "feeding_type", "feeding_main", "size_mm_", "dist",
+                                              "feeding_type", "feeding_main", "size_mm_", 
                                               "current_distribution_cosmopolitan_", "town", "rege_date_source",
-                                              "nz_area_code", "life_form", "data_quality", "first_record_orig",
-                                              "confirmed_establishment"
+                                              "nz_area_code", "life_form", "data_quality", "first_record_orig"
                                               )) %>% 
                                # add the name of the country as a column
                                mutate(region = country_nm) %>% 

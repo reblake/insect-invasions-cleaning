@@ -36,9 +36,6 @@ occurr_list <- lapply(file_listp, separate_occurrence)
 df_occurr <- occurr_list %>% 
              purrr::reduce(full_join) %>% 
              mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE)) %>% # remove rogue white spaces
-             # filter out USA and Canada data from Seebens - keep Sandy's North America data
-             dplyr::filter(!(region == "Europe" & country %in% c("Usacanada", "United States")),
-                           !is.na(genus_species)) %>% 
              mutate(genus_species = gsub("\\ssp(\\.|p|\\d)$", "", genus_species, perl=TRUE),
                     genus_species = gsub("\\ssp\\.[A-Z]$", "", genus_species, perl=TRUE),
                     genus_species = gsub("\\ssp$", "", genus_species, perl=TRUE),
