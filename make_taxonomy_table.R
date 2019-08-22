@@ -49,18 +49,18 @@ tax_class <- c("kingdom", "phylum", "class", "order", "family", "super_family",
 ### Make large table with all info
 
 # also correct mis-spellings of certain species based on expert review by A. Liebhold
-misspell <- read_csv("./data/raw_data/taxonomic_reference/misspelling_SAL_resolved.csv", trim_ws = TRUE)
+# misspell <- read_csv("./data/raw_data/taxonomic_reference/misspelling_SAL_resolved.csv", trim_ws = TRUE)
 
 tax_df1 <- tax_df %>% 
            mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE)) %>% 
            mutate_at(vars(genus_species), str_squish) %>% 
            mutate(user_supplied_name = genus_species) %>% 
-           full_join(misspell, by = "user_supplied_name") %>% 
-           transmute(phylum, class, order, family, super_family, user_supplied_name, 
-                     genus_species = ifelse(!is.na(genus_species.y), genus_species.y, genus_species.x ),
-                     genus = word(genus_species, 1),
-                     species = word(genus_species, 2),
-                     taxonomy_system, taxonomic_authority) %>% 
+           # full_join(misspell, by = "user_supplied_name") %>% 
+           # transmute(phylum, class, order, family, super_family, user_supplied_name, 
+           #           genus_species = ifelse(!is.na(genus_species.y), genus_species.y, genus_species.x ),
+           #           genus = word(genus_species, 1),
+           #           species = word(genus_species, 2),
+           #           taxonomy_system, taxonomic_authority) %>% 
            distinct(genus_species) %>%  # remove species duplicates          
            dplyr::arrange(genus_species) # arrange alphabetically
   
