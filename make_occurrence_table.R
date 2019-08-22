@@ -39,20 +39,22 @@ df_occurr <- occurr_list %>%
              # filter out USA and Canada data from Seebens - keep Sandy's North America data
              dplyr::filter(!(region == "Europe" & country %in% c("Usacanada", "United States")),
                            !is.na(genus_species)) %>% 
-             mutate(genus_species = gsub("\\ssp(\\.|p|1|2)", "", genus_species, perl=TRUE),
-                    genus_species = gsub("\\ssp", "", genus_species, perl=TRUE),
-                    genus_species = gsub("\\sn\\.sp", "", genus_species, perl=TRUE),
-                    genus_species = gsub("\\ssp", "", genus_species, perl=TRUE),
-                    genus_species = gsub("\\s\\ssp", "", genus_species, perl=TRUE),
+             mutate(genus_species = gsub("\\ssp(\\.|p|\\d)$", "", genus_species, perl=TRUE),
+                    genus_species = gsub("\\ssp\\.[A-Z]$", "", genus_species, perl=TRUE),
+                    genus_species = gsub("\\ssp$", "", genus_species, perl=TRUE),
+                    genus_species = gsub("\\sn\\.sp$", "", genus_species, perl=TRUE),
+                    genus_species = gsub("\\s\\ssp$", "", genus_species, perl=TRUE),
                     genus_species = gsub("\\d+$", "", genus_species, perl=TRUE),
                     genus_species = gsub("\\t", " ", genus_species, perl=TRUE),
-                    genus_species = gsub("  ", " ", genus_species, perl=TRUE),
+                    genus_species = gsub("\\s\\s", " ", genus_species, perl=TRUE),
                     genus_species = gsub("[A-Z]{1}$", "", genus_species, perl=TRUE),
                     genus_species = gsub("\\snr\\s", "", genus_species, perl=TRUE),
+                    genus_species = gsub("\\sgr\\s", " ", genus_species, perl=TRUE),
                     genus_species = gsub("\\s=(.*)", "", genus_species, perl=TRUE),
                     genus_species = gsub("\\s\\((.*)", "", genus_species, perl=TRUE),
-                    genus_species = gsub("[^\x20-\x7E]sp", "", genus_species, perl=TRUE)
-                    
+                    genus_species = gsub("[^\x20-\x7E]sp", "", genus_species, perl=TRUE),
+                    genus_species = gsub("[^\x20-\x7E]", " ", genus_species, perl=TRUE),
+                    genus_species = gsub("\\sbiotype", "", genus_species, perl=TRUE)
                     ) %>% 
              # fill in country column with canada_or_us info
              mutate(country = ifelse(is.na(country) & canada_or_us %in% c("Canada", "Us", "Us, may not actually be adventive"), 

@@ -23,12 +23,13 @@ get_phylo_counts <- function(key){
                     res <- name_lookup(higherTaxonKey = key, limit = 99000, status = c("accepted", "doubtful")) 
                     i_df <- res$data %>% select(-datasetKey, -constituentKey, -scientificName, -nubKey, -parentKey,
                                                 -basionymKey, -basionym) 
+                    i_df$threatStatuses <- as.character(i_df$threatStatuses)
                     
                     return(i_df) 
                     }
 
-in_k <- c(1451, 584, 1457)
-order_list <- lapply(in_k, get_phylo_counts) 
+#in_k <- c(1451, 584, 585, 786)
+order_list <- lapply(ins_keys, get_phylo_counts) 
 
 df_orders <- order_list %>% 
              purrr::reduce(full_join)
