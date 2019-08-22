@@ -36,6 +36,7 @@ This code below is for trouble shooting the discrepencies between tables.
 ```{r, eval = FALSE, include = FALSE}
 t <- tax_table$user_supplied_name
 o <- occ_table$user_supplied_name
+oo <- occurr_df$user_supplied_name
 
 t_miss <- o[!o %in% t]
 o_miss <- t[!t %in% o]

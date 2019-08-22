@@ -39,7 +39,21 @@ df_occurr <- occurr_list %>%
              # filter out USA and Canada data from Seebens - keep Sandy's North America data
              dplyr::filter(!(region == "Europe" & country %in% c("Usacanada", "United States")),
                            !is.na(genus_species)) %>% 
-             mutate_all(~gsub("\\xa0", " ", . , perl=TRUE)) %>% 
+             mutate(genus_species = gsub("\\ssp(\\.|p|1|2)", "", genus_species, perl=TRUE),
+                    genus_species = gsub("\\ssp", "", genus_species, perl=TRUE),
+                    genus_species = gsub("\\sn\\.sp", "", genus_species, perl=TRUE),
+                    genus_species = gsub("\\ssp", "", genus_species, perl=TRUE),
+                    genus_species = gsub("\\s\\ssp", "", genus_species, perl=TRUE),
+                    genus_species = gsub("\\d+$", "", genus_species, perl=TRUE),
+                    genus_species = gsub("\\t", " ", genus_species, perl=TRUE),
+                    genus_species = gsub("  ", " ", genus_species, perl=TRUE),
+                    genus_species = gsub("[A-Z]{1}$", "", genus_species, perl=TRUE),
+                    genus_species = gsub("\\snr\\s", "", genus_species, perl=TRUE),
+                    genus_species = gsub("\\s=(.*)", "", genus_species, perl=TRUE),
+                    genus_species = gsub("\\s\\((.*)", "", genus_species, perl=TRUE),
+                    genus_species = gsub("[^\x20-\x7E]sp", "", genus_species, perl=TRUE)
+                    
+                    ) %>% 
              # fill in country column with canada_or_us info
              mutate(country = ifelse(is.na(country) & canada_or_us %in% c("Canada", "Us", "Us, may not actually be adventive"), 
                                      canada_or_us, country),
@@ -109,7 +123,7 @@ df_occurr <- occurr_list %>%
              # add country codes for country and origin columns
              mutate(country_code = countrycode(country, "country.name", "iso3n", warn = TRUE),
                     origin_code = countrycode(origin, "country.name", "iso3n", warn = TRUE)) %>% 
-             mutate(user_supplied_name = gsub("\xa0", " ", . , perl=TRUE)) %>% # trying to get rid of weird characters
+             mutate(genus_species = gsub("\xa0", " ", genus_species , perl=TRUE)) %>% # trying to get rid of weird characters
              dplyr::select(-canada_or_us, -nz_region) %>% 
              dplyr::arrange(genus_species) 
 
