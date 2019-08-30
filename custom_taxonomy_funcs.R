@@ -8,7 +8,7 @@
 # a function that cleans the dataframes and separates taxonomy columns
 separate_taxonomy <- function(df_location){
                      # reads the excel file in
-                     df <- read_excel(df_location, trim_ws = TRUE)       
+                     df <- read_excel(df_location, trim_ws = TRUE, col_types = "text")       
       
                      # clean up column names, capitalization, etc.
                      df_1 <- df %>% 
@@ -203,7 +203,7 @@ get_more_info <- function(taxa_name){
 ######################
 separate_occurrence <- function(df_location){
                        # reads the excel file in
-                       df <- read_excel(df_location) 
+                       df <- read_excel(df_location, trim_ws = TRUE, col_types = "text") 
   
                        # clean up column names, capitalization, etc.
                        df_1 <- df %>% 

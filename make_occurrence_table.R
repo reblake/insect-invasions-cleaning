@@ -51,7 +51,8 @@ df_occurr <- occurr_list %>%
                     genus_species = gsub("\\s\\((.*)", "", genus_species, perl=TRUE),
                     genus_species = gsub("[^\x20-\x7E]sp", "", genus_species, perl=TRUE),
                     genus_species = gsub("[^\x20-\x7E]", " ", genus_species, perl=TRUE),
-                    genus_species = gsub("\\sbiotype", "", genus_species, perl=TRUE)
+                    genus_species = gsub("\\sbiotype", "", genus_species, perl=TRUE), 
+                    genus_species = word(genus_species, 1,2)
                     ) %>% 
              # fill in country column with canada_or_us info
              mutate(country = ifelse(is.na(country) & canada_or_us %in% c("Canada", "Us", "Us, may not actually be adventive"), 

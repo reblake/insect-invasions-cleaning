@@ -290,7 +290,7 @@ tax_final <- tax_combo %>%
                        species = ifelse(!is.na(family.y), word(genus_species.y, 2), species), 
                        genus_species = ifelse(!is.na(genus_species.y), genus_species.y, genus_species.x),
                        taxonomy_system = ifelse(!is.na(taxonomy_system.y), taxonomy_system.y, taxonomy_system.x),
-                       taxonomic_authority = ifelse(!is.na(rank.y), NA_character_, taxonomic_authority)) %>% 
+                       taxonomic_authority = ifelse(!is.na(taxonomic_authority.y), taxonomic_authority.y, taxonomic_authority.x)) %>% 
              mutate(kingdom = ifelse(is.na(kingdom), "Animalia", kingdom),
                     phylum = ifelse(is.na(phylum), "Arthropoda", phylum),
                     class = ifelse(is.na(class), "Insecta", class),
