@@ -17,7 +17,7 @@ separate_taxonomy <- function(df_location){
                              select_all(tolower) %>%  # make all column names lower case
                              mutate_all(~gsub("\\b([[:upper:]])([[:upper:]]+)",
                                               "\\U\\1\\L\\2", . , perl=TRUE)) %>% 
-                             mutate_all(~gsub("\\.", "", .)) 
+                             mutate_all(~gsub("\\.", "", . , perl=TRUE)) 
                      
                      # define what taxonomic columns might be named        
                      tax_class <- c("kingdom", "phylum", "class", "order", "family", 
@@ -26,7 +26,18 @@ separate_taxonomy <- function(df_location){
                      
                      # split off any columns with any taxonomic column names
                      df_2 <- df_1 %>% 
-                             select(one_of(tax_class))
+                             select(one_of(tax_class)) %>% 
+                             mutate(genus_species = gsub("\\ssp(\\.|p|\\d|\\.\\d)$", "", genus_species, perl=TRUE),
+                                    genus_species = gsub("\\.", "", genus_species, perl=TRUE),
+                                    genus_species = gsub("\\s\\([^()]*\\)", "\\1", genus_species, perl=TRUE),
+                                    genus_species = gsub("\\([A-Z].*", "\\1", genus_species, perl=TRUE),
+                                    genus_species = gsub("\\sssp\\.\\s[a-z].*$", "", genus_species, perl=TRUE),
+                                    genus_species = gsub("\\ssp$", "", genus_species, perl=TRUE),
+                                    genus_species = gsub("\\ssp\\.[A-Z]$", "", genus_species, perl=TRUE),
+                                    genus_species = gsub("\\sn\\.sp$", "", genus_species, perl=TRUE),
+                                    genus_species = gsub("\\s\\ssp$", "", genus_species, perl=TRUE),
+                                    genus_species = gsub("^(\\S*\\s+\\S+).*", "\\1", genus_species, perl=TRUE)
+                                    )
                      
                      # return df_2 
                      return(df_2)       
@@ -233,7 +244,9 @@ separate_occurrence <- function(df_location){
                                               )) %>% 
                                # add the name of the country as a column
                                mutate(region = country_nm) %>% 
-                               mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE))
+                               mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE)) %>% 
+                               # replace any non-numerical values in year column with NA
+                               mutate(year = gsub("u", NA_character_, year, perl=TRUE))
                           
                                # return df_2 
                                return(df_2)

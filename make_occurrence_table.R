@@ -36,23 +36,28 @@ occurr_list <- lapply(file_listp, separate_occurrence)
 df_occurr <- occurr_list %>% 
              purrr::reduce(full_join) %>% 
              mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE)) %>% # remove rogue white spaces
-             mutate(genus_species = gsub("\\ssp(\\.|p|\\d)$", "", genus_species, perl=TRUE),
-                    genus_species = gsub("\\ssp\\.[A-Z]$", "", genus_species, perl=TRUE),
+             mutate(genus_species = gsub("\\ssp(\\.|p|\\d|\\.\\d)$", "", genus_species, perl=TRUE),
+                    genus_species = gsub("\\.", "", genus_species, perl=TRUE),
+                    genus_species = gsub("\\s\\([^()]*\\)", "\\1", genus_species, perl=TRUE),
+                    genus_species = gsub("\\([A-Z].*", "\\1", genus_species, perl=TRUE),
+                    genus_species = gsub("\\sssp\\.\\s[a-z].*$", "", genus_species, perl=TRUE),
                     genus_species = gsub("\\ssp$", "", genus_species, perl=TRUE),
+                    genus_species = gsub("\\ssp\\.[A-Z]$", "", genus_species, perl=TRUE),
                     genus_species = gsub("\\sn\\.sp$", "", genus_species, perl=TRUE),
                     genus_species = gsub("\\s\\ssp$", "", genus_species, perl=TRUE),
-                    genus_species = gsub("\\d+$", "", genus_species, perl=TRUE),
-                    genus_species = gsub("\\t", " ", genus_species, perl=TRUE),
-                    genus_species = gsub("\\s\\s", " ", genus_species, perl=TRUE),
+             #       genus_species = gsub("\\d+$", "", genus_species, perl=TRUE),
+             #       genus_species = gsub("\\t", " ", genus_species, perl=TRUE),
+             #       genus_species = gsub("\\s\\s", " ", genus_species, perl=TRUE),
                     genus_species = gsub("[A-Z]{1}$", "", genus_species, perl=TRUE),
-                    genus_species = gsub("\\snr\\s", "", genus_species, perl=TRUE),
-                    genus_species = gsub("\\sgr\\s", " ", genus_species, perl=TRUE),
-                    genus_species = gsub("\\s=(.*)", "", genus_species, perl=TRUE),
-                    genus_species = gsub("\\s\\((.*)", "", genus_species, perl=TRUE),
+             #       genus_species = gsub("\\snr\\s", "", genus_species, perl=TRUE),
+             #       genus_species = gsub("\\sgr\\s", " ", genus_species, perl=TRUE),
+             #       genus_species = gsub("\\s=(.*)", "", genus_species, perl=TRUE),
+             #       genus_species = gsub("\\s\\((.*)", "", genus_species, perl=TRUE),
                     genus_species = gsub("[^\x20-\x7E]sp", "", genus_species, perl=TRUE),
                     genus_species = gsub("[^\x20-\x7E]", " ", genus_species, perl=TRUE),
-                    genus_species = gsub("\\sbiotype", "", genus_species, perl=TRUE), 
-                    genus_species = word(genus_species, 1,2)
+                    genus_species = sub("^(\\S*\\s+\\S+).*", "\\1", genus_species, perl=TRUE)  # selects first two words
+             #       genus_species = gsub("\\sbiotype", "", genus_species, perl=TRUE)
+                    
                     ) %>% 
              # fill in country column with canada_or_us info
              mutate(country = ifelse(is.na(country) & canada_or_us %in% c("Canada", "Us", "Us, may not actually be adventive"), 

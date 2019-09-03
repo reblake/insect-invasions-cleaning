@@ -68,16 +68,21 @@ tax_df1 <- tax_df %>%
 #####################################
 ### Make vectors of genus names (no species info) and species names
 # make character vector of names only to genus
-g_sp <- grep('\\<sp\\>', tax_df1$genus_species, value=TRUE) 
-g_spp <- grep('\\<sp.\\>', tax_df1$genus_species, value=TRUE)
-bard <- grep('\\<gen\\>', tax_df1$genus_species, value=TRUE) # include sub-family here
-tax_vec_gn <- c(g_sp, g_spp, bard) %>% gsub(" [a-zA-Z0-9]*", "", .) %>% 
+# g_sp <- grep('\\<sp\\>', tax_df1$genus_species, value=TRUE) 
+# g_spp <- grep('\\<sp.\\>', tax_df1$genus_species, value=TRUE)
+g_sp <- filter(tax_df1, (str_count(genus_species, " ") + 1) == 1)
+# bard <- grep('\\<gen\\>', tax_df1$genus_species, value=TRUE) # include sub-family here   
+tax_vec_gn <- unlist(g_sp, use.names = FALSE) %>%  # gsub(" [a-zA-Z0-9]*", "", .) %>%
               magrittr::extract(!(. == "Tasconotus")) # remove this species
 
+              
+
 # makes character vector of names only to species 
-tax_vec_sp <- unlist(tax_df1$genus_species, use.names = FALSE) %>% 
-              magrittr::extract(!(. %in% g_sp)) %>% 
-              magrittr::extract(!(. %in% g_spp)) %>% 
+tax_vec_sp <- tax_df1 %>% 
+              filter(!(genus_species %in% g_sp$genus_species))  %>% 
+              # magrittr::extract(!(. %in% g_sp)) %>% 
+              # magrittr::extract(!(. %in% g_spp)) %>% 
+              unlist(., use.names = FALSE) %>% 
               magrittr::extract(!(. == "Baridinae")) # this family put with genus above
 
 
