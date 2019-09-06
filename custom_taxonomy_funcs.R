@@ -27,16 +27,27 @@ separate_taxonomy <- function(df_location){
                      # split off any columns with any taxonomic column names
                      df_2 <- df_1 %>% 
                              select(one_of(tax_class)) %>% 
-                             mutate(genus_species = gsub("\\ssp(\\.|p|\\d|\\.\\d)$", "", genus_species, perl=TRUE),
-                                    genus_species = gsub("\\.", "", genus_species, perl=TRUE),
+                             mutate(genus_species = gsub("\\ssp\\s[a-z]+\\s[a-z]+$", "", genus_species, perl=TRUE),
+                                    genus_species = gsub("\\ssp\\s[A-Za-z]+\\d+$", "", genus_species, perl=TRUE),
+                                    genus_species = gsub("\\ssp\\.\\d\\s\\s[A-Za-z]+$", "", genus_species, perl=TRUE),
+                                    genus_species = gsub("\\s[A-Z]\\.[A-Z]\\.[A-Z][a-z]+\\,\\s\\d+$", "", genus_species, perl=TRUE),
+                                    genus_species = gsub("[^\x20-\x7E]sp", "", genus_species, perl=TRUE),
+                                    genus_species = gsub("[^\x20-\x7E]", " ", genus_species, perl=TRUE),
                                     genus_species = gsub("\\s\\([^()]*\\)", "\\1", genus_species, perl=TRUE),
-                                    genus_species = gsub("\\([A-Z].*", "\\1", genus_species, perl=TRUE),
+                                    genus_species = gsub("\\([A-Z].*$", "\\1", genus_species, perl=TRUE),
+                                    genus_species = gsub("^([A-Z][a-z]+\\s\\S+).*", "\\1", genus_species, perl=TRUE),
                                     genus_species = gsub("\\sssp\\.\\s[a-z].*$", "", genus_species, perl=TRUE),
-                                    genus_species = gsub("\\ssp$", "", genus_species, perl=TRUE),
                                     genus_species = gsub("\\ssp\\.[A-Z]$", "", genus_species, perl=TRUE),
-                                    genus_species = gsub("\\sn\\.sp$", "", genus_species, perl=TRUE),
+                                    genus_species = gsub("\\ssp[A-Z]$", "", genus_species, perl=TRUE),
+                                    genus_species = gsub("\\ssp(\\.|p|\\d|\\.\\d)$", "", genus_species, perl=TRUE),
+                                    genus_species = gsub("\\.", "", genus_species, perl=TRUE),
+                                    genus_species = gsub("\\sn\\.sp\\.$", "", genus_species, perl=TRUE),
+                                    genus_species = gsub("\\sn$", "", genus_species, perl=TRUE),
                                     genus_species = gsub("\\s\\ssp$", "", genus_species, perl=TRUE),
-                                    genus_species = gsub("^(\\S*\\s+\\S+).*", "\\1", genus_species, perl=TRUE)
+                                    genus_species = gsub("\\d+$", "", genus_species, perl=TRUE),
+                                    genus_species = gsub("\\s\\ss", " ", genus_species, perl=TRUE),
+                                    genus_species = gsub("\\s\\s", " ", genus_species, perl=TRUE),
+                                    genus_species = gsub("\\ssp$", "", genus_species, perl=TRUE)
                                     )
                      
                      # return df_2 
@@ -180,7 +191,7 @@ get_more_info <- function(taxa_name){
                       
                       id_class <- if (!(id_res$taxonomy_system %in% c("NCBI", "ITIS"))) {id_res
                                      } else {
-                                       Sys.sleep(3)  
+                                       Sys.sleep(5)  
                                        c <- tax_name(taxa_name, 
                                                      get = c("kingdom", "phylum", "class", "order", "family", "genus", "species"), 
                                                      db = "both")
@@ -246,8 +257,30 @@ separate_occurrence <- function(df_location){
                                mutate(region = country_nm) %>% 
                                mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE)) %>% 
                                # replace any non-numerical values in year column with NA
-                               mutate(year = gsub("u", NA_character_, year, perl=TRUE))
-                          
+                               mutate(year = gsub("u", NA_character_, year, perl=TRUE)) %>% 
+                               mutate(genus_species = gsub("\\ssp\\s[a-z]+\\s[a-z]+$", "", genus_species, perl=TRUE),
+                                      genus_species = gsub("\\ssp\\s[A-Za-z]+\\d+$", "", genus_species, perl=TRUE),
+                                      genus_species = gsub("\\ssp\\.\\d\\s\\s[A-Za-z]+$", "", genus_species, perl=TRUE),
+                                      genus_species = gsub("\\s[A-Z]\\.[A-Z]\\.[A-Z][a-z]+\\,\\s\\d+$", "", genus_species, perl=TRUE),
+                                      genus_species = gsub("[^\x20-\x7E]sp", "", genus_species, perl=TRUE),
+                                      genus_species = gsub("[^\x20-\x7E]", " ", genus_species, perl=TRUE),
+                                      genus_species = gsub("\\s\\([^()]*\\)", "\\1", genus_species, perl=TRUE),
+                                      genus_species = gsub("\\([A-Z].*$", "\\1", genus_species, perl=TRUE),
+                                      genus_species = gsub("^([A-Z][a-z]+\\s\\S+).*", "\\1", genus_species, perl=TRUE),
+                                      genus_species = gsub("\\sssp\\.\\s[a-z].*$", "", genus_species, perl=TRUE),
+                                      genus_species = gsub("\\ssp\\.[A-Z]$", "", genus_species, perl=TRUE),
+                                      genus_species = gsub("\\ssp[A-Z]$", "", genus_species, perl=TRUE),
+                                      genus_species = gsub("\\ssp(\\.|p|\\d|\\.\\d)$", "", genus_species, perl=TRUE),
+                                      genus_species = gsub("\\.", "", genus_species, perl=TRUE),
+                                      genus_species = gsub("\\sn\\.sp\\.$", "", genus_species, perl=TRUE),
+                                      genus_species = gsub("\\sn$", "", genus_species, perl=TRUE),
+                                      genus_species = gsub("\\s\\ssp$", "", genus_species, perl=TRUE),
+                                      genus_species = gsub("\\d+$", "", genus_species, perl=TRUE),
+                                      genus_species = gsub("\\s\\ss", " ", genus_species, perl=TRUE),
+                                      genus_species = gsub("\\s\\s", " ", genus_species, perl=TRUE),
+                                      genus_species = gsub("\\ssp$", "", genus_species, perl=TRUE)
+                                      )
+       
                                # return df_2 
                                return(df_2)
                        }
