@@ -66,6 +66,8 @@ df_occurr <- occurr_list %>%
              # #       genus_species = sub("^(\\S*\\s+\\S+).*", "\\1", genus_species, perl=TRUE)  # selects first two words
              # #       genus_species = gsub("\\sbiotype", "", genus_species, perl=TRUE)
              #        ) %>% 
+             # remove Arachnid
+             filter(!(genus_species == "Trixacarus caviae")) %>% 
              # fill in country column with canada_or_us info
              mutate(country = ifelse(is.na(country) & canada_or_us %in% c("Canada", "Us", "Us, may not actually be adventive"), 
                                      canada_or_us, country),
