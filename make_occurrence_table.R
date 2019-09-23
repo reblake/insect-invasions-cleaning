@@ -36,36 +36,6 @@ occurr_list <- lapply(file_listp, separate_occurrence)
 df_occurr <- occurr_list %>% 
              purrr::reduce(full_join) %>% 
              mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE)) %>% # remove rogue white spaces
-             # mutate(genus_species = gsub("\\ssp\\s[a-z]+\\s[a-z]+$", "", genus_species, perl=TRUE),
-             #        genus_species = gsub("\\ssp\\s[A-Za-z]+\\d+$", "", genus_species, perl=TRUE),
-             #        genus_species = gsub("\\ssp\\.\\d\\s\\s[A-Za-z]+$", "", genus_species, perl=TRUE),
-             #        genus_species = gsub("\\s[A-Z]\\.[A-Z]\\.[A-Z][a-z]+\\,\\s\\d+$", "", genus_species, perl=TRUE),
-             #        genus_species = gsub("[^\x20-\x7E]sp", "", genus_species, perl=TRUE),
-             #        genus_species = gsub("[^\x20-\x7E]", " ", genus_species, perl=TRUE),
-             #        genus_species = gsub("\\s\\([^()]*\\)", "\\1", genus_species, perl=TRUE),
-             #        genus_species = gsub("\\([A-Z].*$", "\\1", genus_species, perl=TRUE),
-             #        genus_species = gsub("^([A-Z][a-z]+\\s\\S+).*", "\\1", genus_species, perl=TRUE),
-             #        genus_species = gsub("\\sssp\\.\\s[a-z].*$", "", genus_species, perl=TRUE),
-             #        genus_species = gsub("\\ssp\\.[A-Z]$", "", genus_species, perl=TRUE),
-             #        genus_species = gsub("\\ssp[A-Z]$", "", genus_species, perl=TRUE),
-             #        genus_species = gsub("\\ssp(\\.|p|\\d|\\.\\d)$", "", genus_species, perl=TRUE),
-             #        genus_species = gsub("\\.", "", genus_species, perl=TRUE),
-             #        genus_species = gsub("\\sn\\.sp\\.$", "", genus_species, perl=TRUE),
-             #        genus_species = gsub("\\sn$", "", genus_species, perl=TRUE),
-             #        genus_species = gsub("\\s\\ssp$", "", genus_species, perl=TRUE),
-             #        genus_species = gsub("\\d+$", "", genus_species, perl=TRUE),
-             #        genus_species = gsub("\\s\\ss", " ", genus_species, perl=TRUE),
-             #        genus_species = gsub("\\s\\s", " ", genus_species, perl=TRUE),
-             #        genus_species = gsub("\\ssp$", "", genus_species, perl=TRUE)
-             # #       genus_species = gsub("\\t", " ", genus_species, perl=TRUE),
-             # #       genus_species = gsub("[A-Z]{1}$", "", genus_species, perl=TRUE),
-             # #       genus_species = gsub("\\snr\\s", "", genus_species, perl=TRUE),
-             # #       genus_species = gsub("\\sgr\\s", " ", genus_species, perl=TRUE),
-             # #       genus_species = gsub("\\s=(.*)", "", genus_species, perl=TRUE),
-             # #       genus_species = gsub("\\s\\((.*)", "", genus_species, perl=TRUE),
-             # #       genus_species = sub("^(\\S*\\s+\\S+).*", "\\1", genus_species, perl=TRUE)  # selects first two words
-             # #       genus_species = gsub("\\sbiotype", "", genus_species, perl=TRUE)
-             #        ) %>% 
              # remove Arachnid
              filter(!(genus_species == "Trixacarus caviae")) %>% 
              # fill in country column with canada_or_us info
@@ -91,45 +61,7 @@ df_occurr <- occurr_list %>%
                     country = ifelse(region == "New Zealand", "New Zealand", country),
                     notes = ifelse(grepl("Proceedings of the", .$origin), origin, notes),
                     origin = ifelse(grepl("Proceedings of the", .$origin), "", origin)) %>% 
-             # clean up origin column
-             mutate(origin = gsub("&", "", origin),
-                    origin = gsub("Indomaraya|indomalaya", "Indomalaya", origin),
-                    origin = gsub("IndomalayaOceania", "Indomalaya, Oceania", origin),
-                    origin = gsub("Middle East", "Middle_East", origin),
-                    origin = gsub("cosmopolitan|Cosmoploitan", "Cosmopolitan", origin),
-                    origin = gsub("S.\\sAfrica|Sth\\sAfrica", "South_Africa", origin),
-                    origin = gsub("\\(Taiwan", "Taiwan", origin),
-                    origin = gsub("\\(Okinawa|\\(Okinawa\\)", "Okinawa", origin),
-                    origin = gsub("\\(Ogasawara", "Ogasawara", origin),
-                    origin = gsub("\\(Java", "Java", origin),
-                    origin = gsub("N.\\sAmerica", "North_America", origin),
-                    origin = gsub("S.\\sAmerica", "South_America", origin),
-                    origin = gsub("C.\\sAmerica", "Central_America", origin),
-                    origin = gsub("Palearctic\\(Asia\\)|Plearctic\\(Asia\\)", "Palearctic_Asia", origin),
-                    origin = gsub("Palearctic\\s\\(Asia\\)|Paleartic\\(Asia\\)", "Palearctic_Asia", origin),
-                    origin = gsub("Ppalearctic\\(Asia\\)|Palearctic\\(Asia", "Palearctic_Asia", origin),
-                    origin = gsub("Palearctic\\s\\(Asia|Paleartic\\(Asia", "Palearctic_Asia", origin),
-                    origin = gsub("Palearctic\\s\\(E.\\sAsia|Palearctic\\s\\(Central\\sAsia", "Palearctic_Asia", origin),
-                    origin = gsub("Palearctic\\(Europe\\)|Palearctic\\s\\(Europe\\)", "Palearctic_Europe", origin),
-                    origin = gsub("alearctic\\(Europe\\)|Palearctic\\(Europe", "Palearctic_Europe", origin),
-                    origin = gsub("Palearctic\\s\\(Europe|Paleartic\\(Europe", "Palearctic_Europe", origin),
-                    origin = gsub("Parearctic\\(Europe", "Palearctic_Europe", origin),
-                    origin = gsub("Palearctic\\s\\(Eurasia", "Palearctic_Europe, Palearctic_Asia", origin),
-                    origin = gsub("Palearctic\\(Europe\\)Nearctic", "Palearctic_Europe, Nearctic", origin),
-                    origin = gsub("Nearctic Nearctic", "Nearctic", origin),
-                    origin = gsub("Nearctic\\(Europe\\)", "Palearctic_Europe", origin),
-                    origin = gsub("\\\"Old World\\\"\\/Europe", "Old_World_Europe", origin),
-                    origin = gsub("Sri\\sLanka\\sor\\sAustralasia\\?\\s\\(Dugdale,\\s1988", "Sri Lanka Australasia", origin),
-                    origin = gsub("C\\/C.\\sAmerica\\?\\sOld\\sworld\\stropics\\s\\(Mound\\s&\\sWalker,\\s1982", 
-                                  "Cosmopolitan, Central_America, Old_World_tropics", origin),
-                    origin = gsub(" ", ", ", origin),
-                    origin = gsub(", , ", ", ", origin),
-                    # origin = gsub(",", ", ", origin),
-                    origin = gsub(",, ", ", ", origin) 
-                    
-                    # origin = strsplit(origin, ", ")
-                    # origin = gsub("\\b", '"', origin, perl=T)
-                    ) %>% 
+             # clean up some species names
              mutate(genus_species = gsub("Mycetophila\xa0propria", "Mycetophila propria", genus_species),
                     genus_species = gsub("Mycetophila\xa0vulgaris", "Mycetophila vulgaris", genus_species),
                     genus_species = gsub("Mycetophila\xa0marginepunctata", "Mycetophila marginepunctata", genus_species),
