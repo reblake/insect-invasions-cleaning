@@ -281,8 +281,8 @@ separate_occurrence <- function(df_location){
                                       genus_species = gsub("\\ssp$", "", genus_species, perl=TRUE)
                                       )
        
-                               # return df_2 
-                               return(df_2)
+                       # return df_2 
+                       return(df_2)
                        }
 ######################
 
@@ -312,7 +312,7 @@ separate_attributes <- function(df_location){
                                               "origin2", "tsn", "comment", "original_species_name",
                                               "rank", "name_changed___1_yes__0__no_", "size_mm_", 
                                               "town", "rege_date_source", "nz_area_code", "life_form", 
-                                              "data_quality"
+                                              "data_quality", "year", "canada_or_us"
                                               )) %>% 
                                mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE)) %>% 
                                # clean up the taxonomic names
@@ -338,6 +338,8 @@ separate_attributes <- function(df_location){
                                       genus_species = gsub("\\s\\s", " ", genus_species, perl=TRUE),
                                       genus_species = gsub("\\ssp$", "", genus_species, perl=TRUE)
                                       )
+                       
+                       return(df_2)
                        }
                          
                          

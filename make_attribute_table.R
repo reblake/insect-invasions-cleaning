@@ -62,9 +62,72 @@ df_attrib <- attrib_list %>%
                     origin = gsub(",, ", ", ", origin) 
                     ) 
 
+# bring in taxonomic table for order, family, and genus columns
+tax_table <- read_csv("/nfs/insectinvasions-data/data/clean_data/taxonomy_table.csv")
+tax_cols <- tax_table %>% select(taxon_id, user_supplied_name, order, family, genus)
 
-### merge in origin_correspondence_table.xlsx for the 8 biogeographic regions
+# origin_correspondence_table.xlsx for the 8 biogeographic regions
+o_corr_table <- read_excel("/nfs/insectinvasions-data/data/raw_data/taxonomic_reference/origin_correspondence_table.xlsx", trim_ws = TRUE, col_types = "text") 
 
-### bring in the plant feeding attribute column from the non-plant-feeding_taxa.csv
+# plant feeding attribute column from the non-plant-feeding_taxa.csv
+plf <- read_csv("/nfs/insectinvasions-data/data/raw_data/taxonomic_reference/non-plant-feeding_taxa.csv")
+nplf_orders <- plf$`non-plant feeding Order`[1:16]
+nplf_fams <- plf$`non plant feeding Family`[17:261]
+nplf_gen <- plf$`non-plant feeding Genus`[c(253:257, 261)]
+plf_gen <- plf$`plant feeding Genus`[!is.na(plf$`plant feeding Genus`)]
+plf_sp <- plf$`plant feeding Species`[!is.na(plf$`plant feeding Species`)]
+
+
+df_attrib_o <- df_attrib %>% 
+               left_join(tax_cols, by = c("genus_species" = "user_supplied_name")) %>% # merge in taxonomic info
+               left_join(o_corr_table) %>%  # merge in origin correspondence table
+               # add plant feeding attribute column
+               mutate(plant_feeding = "Y",
+                      plant_feeding = ifelse(order %in% nplf_orders, "N", plant_feeding),
+                      plant_feeding = ifelse((order == "Coleoptera" & family %in% nplf_fams), "N", plant_feeding),
+                      plant_feeding = ifelse((order == "Diptera" & family %in% nplf_fams), "N", plant_feeding),
+                      plant_feeding = ifelse((order == "Hemiptera" & family %in% nplf_fams), "N", plant_feeding),
+                      plant_feeding = ifelse((order == "Hymenoptera" & family %in% nplf_fams), "N", plant_feeding),
+                      plant_feeding = ifelse((order == "Blattodea" & family %in% nplf_fams), "N", plant_feeding),
+                      plant_feeding = ifelse((order == "Lepidoptera" & family %in% nplf_fams), "N", plant_feeding),
+                      plant_feeding = ifelse((order == "Thysanoptera" & family %in% nplf_fams), "N", plant_feeding),
+                      plant_feeding = ifelse((order == "Thysanoptera" & family == "Thripidae" & genus %in% nplf_gen), "N", plant_feeding),
+                      plant_feeding = ifelse((order == "Thysanoptera" & family == "Phlaeothripidae" & genus %in% nplf_gen), "N", plant_feeding),
+                      plant_feeding = ifelse((order == "Thysanoptera" & family == "Aleurodothrips" & genus %in% nplf_gen), "N", plant_feeding),
+                      plant_feeding = ifelse((order == "Coleoptera" & family == "Coccinellidae" & genus %in% plf_gen), "Y", plant_feeding),
+                      plant_feeding = ifelse((order == "Diptera" & family == "Muscidae" & genus %in% plf_gen), "Y", plant_feeding),
+                      plant_feeding = ifelse((order == "Diptera" & family == "Phoridae" & genus %in% plf_gen), "Y", plant_feeding),
+                      plant_feeding = ifelse((order == "Diptera" & family == "Drosophilidae" & genus_species %in% plf_sp), "Y", plant_feeding)
+                      ) %>% 
+               arrange(order, family, genus, genus_species) %>% 
+               select(-origin) %>% 
+               select(taxon_id, genus_species, plant_feeding, order, family, genus, 
+                      origin_Nearctic, origin_Neotropic, origin_European_Palearctic, origin_Asian_Palearctic, origin_Indomalaya, 
+                      origin_Afrotropic, origin_Australasia, origin_Oceania, everything())
+
+
+#####################################
+### Write file                    ###
+#####################################
+# write out the attribute table
+readr::write_csv(df_attrib_o, "/nfs/insectinvasions-data/data/clean_data/attribute_table.csv")
+
+
+
+
+	
+	
+	
+
+
+
+
+
+
+
+
+
+
+
 
 
