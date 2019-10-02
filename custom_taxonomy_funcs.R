@@ -337,8 +337,10 @@ separate_attributes <- function(df_location){
                                       genus_species = gsub("\\s\\ss", " ", genus_species, perl=TRUE),
                                       genus_species = gsub("\\s\\s", " ", genus_species, perl=TRUE),
                                       genus_species = gsub("\\ssp$", "", genus_species, perl=TRUE)
-                                      )
-                       
+                                      ) %>% 
+                               # add country_nm column
+                               mutate(country_nm = country_nm)                                
+                                                           
                        return(df_2)
                        }
                          
