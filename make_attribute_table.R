@@ -69,13 +69,15 @@ tax_cols <- tax_table %>% select(taxon_id, user_supplied_name, order, family, ge
 # origin_correspondence_table.xlsx for the 8 biogeographic regions
 o_corr_table <- read_excel("/nfs/insectinvasions-data/data/raw_data/taxonomic_reference/origin_correspondence_table.xlsx", trim_ws = TRUE, col_types = "text") 
 
-# plant feeding attribute column from the non-plant-feeding_taxa.csv
-plf <- read_csv("/nfs/insectinvasions-data/data/raw_data/taxonomic_reference/non-plant-feeding_taxa.csv")
-nplf_orders <- plf$`non-plant feeding Order`[1:16]
-nplf_fams <- plf$`non plant feeding Family`[17:261]
-nplf_gen <- plf$`non-plant feeding Genus`[c(253:257, 261)]
-plf_gen <- plf$`plant feeding Genus`[!is.na(plf$`plant feeding Genus`)]
-plf_sp <- plf$`plant feeding Species`[!is.na(plf$`plant feeding Species`)]
+# plant feeding attribute column from the non-plant-feeding_taxa file
+npf_file <- "/nfs/insectinvasions-data/data/raw_data/taxonomic_reference/non-plant-feeding_taxa_updatedOct07.xlsx"
+npf_orders <- read_excel(npf_file, sheet = 2, trim_ws = TRUE, col_types = "text")
+npf_fams <- read_excel(npf_file, sheet = 3, trim_ws = TRUE, col_types = "text")
+npf_gen <- read_excel(npf_file, sheet = 4, trim_ws = TRUE, col_types = "text")
+
+
+# plf_gen <- plf$`plant feeding Genus`[!is.na(plf$`plant feeding Genus`)]
+# plf_sp <- plf$`plant feeding Species`[!is.na(plf$`plant feeding Species`)]
 
 
 df_attrib_o <- df_attrib %>% 
