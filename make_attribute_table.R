@@ -71,35 +71,39 @@ o_corr_table <- read_excel("/nfs/insectinvasions-data/data/raw_data/taxonomic_re
 
 # plant feeding attribute column from the non-plant-feeding_taxa file
 npf_file <- "/nfs/insectinvasions-data/data/raw_data/taxonomic_reference/non-plant-feeding_taxa_updatedOct07.xlsx"
-npf_orders <- read_excel(npf_file, sheet = 2, trim_ws = TRUE, col_types = "text")
+npf_ord <- read_excel(npf_file, sheet = 2, trim_ws = TRUE, col_types = "text")
 npf_fams <- read_excel(npf_file, sheet = 3, trim_ws = TRUE, col_types = "text")
 npf_gen <- read_excel(npf_file, sheet = 4, trim_ws = TRUE, col_types = "text")
+pf_gen <- read_excel(npf_file, sheet = 6, trim_ws = TRUE, col_types = "text")
+pf_sp <- read_excel(npf_file, sheet = 7, trim_ws = TRUE, col_types = "text")
 
+# make plant feeding taxa names title case; make vectors using dplyr::pull() 
+npf_ord <- npf_orders %>% mutate(npf_orders = str_to_title(npf_orders)) %>% pull()
+npf_fams <- npf_fams %>% mutate(npf_families = str_to_title(npf_families)) %>% pull()
+npf_gen <- npf_gen %>% mutate(npf_genus = str_to_title(npf_genus)) %>% pull()
+pf_gen <- pf_gen %>% pull()
+pf_sp <- pf_sp %>% pull()
 
-# plf_gen <- plf$`plant feeding Genus`[!is.na(plf$`plant feeding Genus`)]
-# plf_sp <- plf$`plant feeding Species`[!is.na(plf$`plant feeding Species`)]
-
-
+# make attribute table
 df_attrib_o <- df_attrib %>% 
                left_join(tax_cols, by = c("genus_species" = "user_supplied_name")) %>% # merge in taxonomic info
                left_join(o_corr_table) %>%  # merge in origin correspondence table
                # add plant feeding attribute column
                mutate(plant_feeding = "Y",
-                      plant_feeding = ifelse(order %in% nplf_orders, "N", plant_feeding),
-                      plant_feeding = ifelse((order == "Coleoptera" & family %in% nplf_fams), "N", plant_feeding),
-                      plant_feeding = ifelse((order == "Diptera" & family %in% nplf_fams), "N", plant_feeding),
-                      plant_feeding = ifelse((order == "Hemiptera" & family %in% nplf_fams), "N", plant_feeding),
-                      plant_feeding = ifelse((order == "Hymenoptera" & family %in% nplf_fams), "N", plant_feeding),
-                      plant_feeding = ifelse((order == "Blattodea" & family %in% nplf_fams), "N", plant_feeding),
-                      plant_feeding = ifelse((order == "Lepidoptera" & family %in% nplf_fams), "N", plant_feeding),
-                      plant_feeding = ifelse((order == "Thysanoptera" & family %in% nplf_fams), "N", plant_feeding),
-                      plant_feeding = ifelse((order == "Thysanoptera" & family == "Thripidae" & genus %in% nplf_gen), "N", plant_feeding),
-                      plant_feeding = ifelse((order == "Thysanoptera" & family == "Phlaeothripidae" & genus %in% nplf_gen), "N", plant_feeding),
-                      plant_feeding = ifelse((order == "Thysanoptera" & family == "Aleurodothrips" & genus %in% nplf_gen), "N", plant_feeding),
-                      plant_feeding = ifelse((order == "Coleoptera" & family == "Coccinellidae" & genus %in% plf_gen), "Y", plant_feeding),
-                      plant_feeding = ifelse((order == "Diptera" & family == "Muscidae" & genus %in% plf_gen), "Y", plant_feeding),
-                      plant_feeding = ifelse((order == "Diptera" & family == "Phoridae" & genus %in% plf_gen), "Y", plant_feeding),
-                      plant_feeding = ifelse((order == "Diptera" & family == "Drosophilidae" & genus_species %in% plf_sp), "Y", plant_feeding)
+                      plant_feeding = ifelse(order %in% npf_ord, "N", plant_feeding),
+                      plant_feeding = ifelse((order == "Blattodea" & family %in% npf_fams), "N", plant_feeding),
+                      plant_feeding = ifelse((order == "Coleoptera" & family %in% npf_fams), "N", plant_feeding),
+                      plant_feeding = ifelse((order == "Diptera" & family %in% npf_fams), "N", plant_feeding),
+                      plant_feeding = ifelse((order == "Hemiptera" & family %in% npf_fams), "N", plant_feeding),
+                      plant_feeding = ifelse((order == "Hymenoptera" & family %in% npf_fams), "N", plant_feeding),
+                      plant_feeding = ifelse((order == "Lepidoptera" & family %in% npf_fams), "N", plant_feeding),
+                      plant_feeding = ifelse((order == "Thysanoptera" & family %in% npf_fams), "N", plant_feeding),
+                      plant_feeding = ifelse((order == "Thysanoptera" & family == "Phlaeothripidae" & genus %in% npf_gen), "N", plant_feeding),
+                      plant_feeding = ifelse((order == "Thysanoptera" & family == "Thripidae" & genus %in% npf_gen), "N", plant_feeding),
+                      plant_feeding = ifelse((order == "Coleoptera" & family == "Coccinellidae" & genus %in% pf_gen), "Y", plant_feeding),
+                      plant_feeding = ifelse((order == "Diptera" & family == "Muscidae" & genus %in% pf_gen), "Y", plant_feeding),
+                      plant_feeding = ifelse((order == "Diptera" & family == "Phoridae" & genus %in% pf_gen), "Y", plant_feeding),
+                      plant_feeding = ifelse((order == "Diptera" & family == "Drosophilidae" & genus_species %in% pf_sp), "Y", plant_feeding)
                       ) %>% 
                arrange(order, family, genus, genus_species) %>% 
                select(-origin) %>% 
