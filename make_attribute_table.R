@@ -78,7 +78,7 @@ pf_gen <- read_excel(npf_file, sheet = 6, trim_ws = TRUE, col_types = "text")
 pf_sp <- read_excel(npf_file, sheet = 7, trim_ws = TRUE, col_types = "text")
 
 # make plant feeding taxa names title case; make vectors using dplyr::pull() 
-npf_ord <- npf_orders %>% mutate(npf_orders = str_to_title(npf_orders)) %>% pull()
+npf_ord <- npf_ord %>% mutate(npf_orders = str_to_title(npf_orders)) %>% pull()
 npf_fams <- npf_fams %>% mutate(npf_families = str_to_title(npf_families)) %>% pull()
 npf_gen <- npf_gen %>% mutate(npf_genus = str_to_title(npf_genus)) %>% pull()
 pf_gen <- pf_gen %>% pull()

@@ -245,7 +245,7 @@ separate_occurrence <- function(df_location){
                                select(-one_of("kingdom", "phylum", "class", "order", "family", 
                                               "genus", "species", "authority", "super_family", 
                                               "suborder", "author", "common_name", "taxonomy_system",
-                                              "phagy", "host_group", "pest_type", "origin",
+                                              "phagy", "host_group", "pest_type", 
                                               "jp_name", "source", "reference", "status", "synonym",
                                               "origin2", "tsn", "comment", "original_species_name",
                                               "rank", "name_changed___1_yes__0__no_", "phagy_main",
