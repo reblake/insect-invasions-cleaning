@@ -1,0 +1,82 @@
+---
+title: "README for Insect Invasions Taxonomic Tables"
+output: pdf_document
+---
+
+```{r libraries, echo=FALSE}
+library(ezknitr); library("rmarkdown")
+
+in_dir <- "~/insect_invasions/example_code"
+out_dir <- "/nfs/insectinvasions-data/data/clean_data"
+```
+
+# Last Update to Taxonomic Files: 
+```{r dates, echo=FALSE}
+tab_loc <- file.path("/nfs/insectinvasions-data/data/clean_data")
+tables <- dir(tab_loc, pattern = "^[a-z]+_table", full.names=TRUE)
+file.info(tables, extra_cols = FALSE)[,c(1,5)]
+```
+
+## Reason for last update:
+Added 13 non-plant feeders to Australian establishment list.
+
+## Taxonomic Database Citations
+```{r citations, echo=FALSE}
+ctime1 <- as.character(file.info(tables, extra_cols = FALSE)[3,c(5)])
+gbif_access_date <- stringr::str_extract(ctime1, "^.{10}")
+access_year <- stringr::str_extract(ctime1, "^.{4}")
+```
+
+```{r gbif, echo=FALSE, results='asis'}
+cat(paste0("GBIF Secretariat ", access_year,". GBIF Backbone Taxonomy. Checklist dataset https://doi.org/10.15468/39omei accessed via GBIF.org on ",
+           gbif_access_date,"."))
+```
+
+
+## Raw Data Files
+Raw data files are stored on the shared data directory at SESYNC (`/nfs/insectinvasions-data` or [files.sesync.org](files.sesync.org)).  
+
+* Australia_NON-NATIVE_PLANT_FEEDERS_ants.xlsx
+* Europe_Aug2019.xlsx
+* Galapagos_Seebens_clean_only.xlsx
+* Great Britain_Insect_pests_new_establishments_1970-2013.xlsx
+* Hawaii_establishments_updateOct18.xlsx
+* Japan_establishments_(confidential).xlsx
+* Korea_established_species_from_Lee_etal_2016.xlsx
+* New Zealand_Updated_exotic_insects_2019Oct11.xlsx
+* North America_4.xlsx
+* Ogasawara_establishments(confidential).xlsx
+* Okinawa_establishments(Confidential).xlsx   
+
+## Cleaning Scripts
+* custom_taxonomy_funcs.R
+* make_taxonomy_table.R
+* make_occurrence_table.R
+* make_attribute_table.R
+
+## Cleaned Data Tables
+Tables are stored on the shared data directory at SESYNC (`/nfs/insectinvasions-data` or [files.sesync.org](files.sesync.org)).  
+These data tables are the outputs of the cleaning scripts.  
+
+* taxonomy_table.csv
+* occurrence_table.csv
+* attribute_table.csv
+
+## Summary of data cleaning/table creation methods
+1.
+2.
+3.
+
+## Advice on how to bring tables together
+Note: All tables have Taxon ID column, which is unique ID for each cleaned taxa
+
+1. read in taxonomy table and other table of interest
+2. use a join to make the tables into one dataframe
+
+
+```{r knit, echo=FALSE, message=FALSE, error=FALSE}
+ezknit(file = paste0(in_dir, "/Taxonomy_Cleaning_README.Rmd"), out_dir = out_dir, keep_html = FALSE)
+
+render(paste0(out_dir, "/Taxonomy_Cleaning_README.md"), output_format = "pdf_document")
+```
+
