@@ -49,6 +49,8 @@ Raw data files are stored on the shared data directory at SESYNC (`/nfs/insectin
 * Okinawa_establishments(Confidential).xlsx   
 
 ## Cleaning Scripts
+Cleaning scripts are located on SESYNC GitLab in [example_code repository](https://gitlab.sesync.org/insectinvasions/example_code)
+
 * custom_taxonomy_funcs.R
 * make_taxonomy_table.R
 * make_occurrence_table.R
@@ -63,9 +65,33 @@ These data tables are the outputs of the cleaning scripts.
 * attribute_table.csv
 
 ## Summary of data cleaning/table creation methods
-1.
-2.
-3.
+1. Read in raw data from excel files for each region/country/area of interest using custom separate_taxonomy() function.  This 
+function also cleans column names, and largely cleans up inconsistencies in species names.  The output is a dataframe.
+
+2. Make two vectors, one of names to species and one of names to genus.  Individually send these vectors to the GBIF backbone 
+taxonomy via the custom function get_accepted_taxonomy() to get the accepted taxonomic names.  
+
+3. Take species names that only matched at genus level and try to get more info from other databases (**list other databases here)
+for those taxa using custom get_more_info() function.  Also use this function to try and get info for species not found in GBIF. 
+
+4. Read in CSV (`genus_only_resolution_FIXED.csv`) of manual fixes to species names, and merge this into the info from GBIF and 
+other databases.  
+
+5. Combine all accepted taxonomic names into one dataframe.  Add a new column with a unique id as a key (number for 1 to x).  Write 
+dataframe to CSV file. 
+
+6. For occurrence table, read in raw data from excel files for each area of interest using the custom separate_occurrence() 
+function. This also cleans up country name and origin columns, and largely cleans up inconsistencies in species names.  
+
+7. Join with the taxonomic table to add the unique taxon id column for key.  Write dataframe to CSV file. 
+
+8. For attribute table, read in raw data from excel files for each area of interest using custom separate_attributes() function.  This
+function cleans up column names, and largely cleans up inconsistencies in species names.   
+
+9. Clean up origin names using regex.  Bring in taxonomic names by joining the taxonomic table.  
+
+10. Bring in origin correspondence table (`origin_correspondence_table.xlsx`) to unify origin column entries.  Bring in non-plant-feeding info (`non-plant-feeding_taxa_updatedOct07.xlsx`) and join with this info in a new column.  Write dataframe to CSV file.  
+
 
 ## Advice on how to bring tables together
 Note: All tables have Taxon ID column, which is unique ID for each cleaned taxa
