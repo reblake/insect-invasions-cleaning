@@ -254,7 +254,7 @@ new_sp_info <- tax_nf %>%
 
 ########
 # bring in new non-plant-feeding Australian taxa from Helen
-new_npf_aus <- read_csv("./data/clean_data/new_Aussie_npf_taxa.csv", trim_ws = TRUE)
+new_npf_aus <- read_csv("./data/clean_data/new_Aussie_npf_taxa.csv", trim_ws = TRUE, col_types = "cnccccccccccccccn")
 
                
 #######################################################################
