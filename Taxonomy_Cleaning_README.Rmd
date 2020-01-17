@@ -4,6 +4,7 @@ output: pdf_document
 ---
 
 ```{r libraries, echo=FALSE}
+knitr::opts_chunk$set(comment = NA)
 library(ezknitr); library("rmarkdown")
 
 in_dir <- "~/insect_invasions/example_code"
@@ -18,7 +19,7 @@ file.info(tables, extra_cols = FALSE)[,c(1,5)]
 ```
 
 ## Reason for last update:
-Added 13 non-plant feeders to Australian establishment list.
+Added 14 non-plant feeders to Australian establishment list.
 
 ## Taxonomic Database Citations
 ```{r citations, echo=FALSE}
@@ -30,6 +31,13 @@ access_year <- stringr::str_extract(ctime1, "^.{4}")
 ```{r gbif, echo=FALSE, results='asis'}
 cat(paste0("GBIF Secretariat ", access_year,". GBIF Backbone Taxonomy. Checklist dataset https://doi.org/10.15468/39omei accessed via GBIF.org on ",
            gbif_access_date,"."))
+```
+
+```{r other_databases, echo=FALSE}
+db_list <- c("Catalogue of Life", "Wikispecies", "ITIS", "NCBI", "The Interim Register of Marine and Nonmarine Genera", "	Encyclopedia of Life",
+             "Aphid Species File", "Index to Organism Names", "uBio NameBank")
+db_info <- subset(gnr_datasources(), title %in% db_list) 
+print.data.frame(db_info %>% select(id, title, updated_at), row.names = FALSE) 
 ```
 
 
