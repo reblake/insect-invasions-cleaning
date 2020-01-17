@@ -252,12 +252,17 @@ new_sp_info <- tax_nf %>%
                       phylum = ifelse(is.na(phylum), "Arthropoda", phylum),
                       class = ifelse(is.na(class), "Insecta", class))
 
+########
+# bring in new non-plant-feeding Australian taxa from Helen
+new_npf_aus <- read_csv("./data/clean_data/new_Aussie_npf_taxa.csv", trim_ws = TRUE)
+
                
 #######################################################################
 ### Combine species list and GBIF accepted names                    ###
 #######################################################################
 tax_combo <- dplyr::filter(tax_acc, rank %in% c("species", "subspecies")) %>% # GBIF matches to species rank  
              full_join(gen_acc) %>%  # df of taxa where user supplied name was genus only to start with
+             full_join(new_npf_aus) %>%  # df of new non-plant-feeding Australian taxa from Helen
              full_join(new_sp_info, by = "user_supplied_name") %>%  # bind in the new info from auto and manual resolution
              transmute(user_supplied_name,  
                        rank = ifelse(is.na(rank.y), rank.x, rank.y),
