@@ -85,14 +85,15 @@ new_aus_acc <- new_npf_l %>%
 )
   
 ##########
-# Hrm, 64 new cases, not 13 like I expected from Rebecca's e-mail
+# 14 new npf taxa
 new_npf_no_match <- anti_join(new_aus_acc, aus_acc, by = "genus_species")
 nrow(new_npf_no_match)
 View(new_npf_no_match)
 
+# write to csv file
+readr::write_csv(new_npf_no_match, "./data/clean_data/new_Aussie_npf_taxa.csv")
 
-# combine cases
-npf_combo <- full_join(aus_npf, new_npf, by = "genus_species")
+
 
 
 
