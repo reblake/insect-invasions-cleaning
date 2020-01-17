@@ -170,7 +170,7 @@ get_accepted_taxonomy <- function(taxa_name){
 
 ######################
 get_more_info <- function(taxa_name){
-                 id <- gnr_resolve(names = taxa_name, data_source_ids=c(1,2,3,4,8,12,152),
+                 id <- gnr_resolve(names = taxa_name, data_source_ids=c(1,2,3,4,8,12,152,168,169),
                                    canonical=TRUE, best_match_only=TRUE)  
                  
                  # deal with cases where species name not found
