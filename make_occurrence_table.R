@@ -66,6 +66,9 @@ df_occurr <- occurr_list %>%
                     genus_species = gsub("Mycetophila\xa0vulgaris", "Mycetophila vulgaris", genus_species),
                     genus_species = gsub("Mycetophila\xa0marginepunctata", "Mycetophila marginepunctata", genus_species),
                     ) %>%         
+             # clean up intentional release column
+             mutate(intentional_release = ifelse(intentional_release %in% c("N"), "No", 
+                                          ifelse(intentional_release %in% c("1", "I"), "Yes", intentional_release))) %>% 
              # add country codes for country and origin columns
              mutate(country_code = countrycode(country, "country.name", "iso3n", warn = TRUE),
                     origin_code = countrycode(origin, "country.name", "iso3n", warn = TRUE)) %>% 
