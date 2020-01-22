@@ -1,0 +1,133 @@
+---
+title: "Establishment Dates"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, echo=FALSE, include=FALSE}
+library(tidyverse)
+
+# read in tables
+occ_table <- read_csv("/nfs/insectinvasions-data/data/clean_data/occurrence_table.csv", col_types = "ncccccccccccccnnc")
+tax_table <- read_csv("/nfs/insectinvasions-data/data/clean_data/taxonomy_table.csv")
+
+# function to collapse rows with multiple entries
+coalesce_by_column <- function(df) {
+                      return(dplyr::coalesce(!!! as.list(df)))
+                      }
+```
+
+```{r prep, echo=FALSE, message=FALSE}
+tax_cols <- tax_table %>% select(taxon_id, user_supplied_name, order, family, genus_species)
+
+occ_fam <- occ_table %>% 
+           mutate(year = ifelse(year == "N/A", NA_character_, year)) %>% 
+           select(taxon_id, user_supplied_name, year, origin, region, genus_species) %>% 
+           left_join(tax_cols)
+
+```
+
+## proportion of occurrence data that have dates
+```{r percent, echo=FALSE, results='asis'}
+
+total <- nrow(occ_fam)
+with_dates <- nrow(filter(occ_fam, !is.na(year)))
+without_dates <- nrow(filter(occ_fam, is.na(year)))
+
+(with_dates/total)*100
+
+```
+
+```{r prep2, echo=FALSE, message=FALSE}
+est_dates <- occ_fam %>% filter(!is.na(year)) %>% 
+             mutate(year = as.factor(year))
+
+est_fam <- occ_fam %>% filter(!is.na(year)) %>% arrange(year) %>% 
+           mutate(year = gsub("\\D", "", year, perl=TRUE)) %>% 
+           mutate(year = as.numeric(year)) %>% 
+           group_by(family) %>% 
+           mutate(median_year = round(median(year))) %>% 
+           ungroup() %>% 
+           select(family, median_year) %>% 
+           distinct() 
+
+est_ord <- occ_fam %>% filter(!is.na(year)) %>% arrange(year) %>% 
+           mutate(year = gsub("\\D", "", year, perl=TRUE)) %>% 
+           mutate(year = as.numeric(year)) %>% 
+           group_by(order) %>% 
+           mutate(median_year = round(median(year))) %>% 
+           ungroup() %>% 
+           select(order, median_year) %>% 
+           distinct()
+        
+```
+
+```{r plot1, warning=FALSE, echo=FALSE}
+h_dates <- ggplot(est_dates, aes(x=year)) + 
+           geom_histogram(stat="count") + 
+           theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + 
+           scale_x_discrete(breaks = levels(est_dates$year)[c(T, rep(F, 9))])
+h_dates
+```
+
+```{r plot2, warning=FALSE, echo=FALSE, fig.height=10}
+fam_dates1 <- ggplot(filter(est_fam, family<"C"), aes(x=median_year, y=family)) + 
+              geom_point() 
+fam_dates1
+```
+
+```{r plot2a, warning=FALSE, echo=FALSE, fig.height=10}
+fam_dates1 <- ggplot(filter(est_fam, family>"C" & family<"D"), aes(x=median_year, y=family)) + 
+              geom_point() 
+fam_dates1
+```
+
+```{r plot2b, warning=FALSE, echo=FALSE, fig.height=10}
+fam_dates2 <- ggplot(filter(est_fam, family>"D" & family<"H"), aes(x=median_year, y=family)) + 
+              geom_point() 
+fam_dates2
+```
+
+```{r plot2c, warning=FALSE, echo=FALSE, fig.height=10}
+fam_dates3 <- ggplot(filter(est_fam, family>"H" & family<"M"), aes(x=median_year, y=family)) + 
+              geom_point() 
+fam_dates3
+```
+
+```{r plot2d, warning=FALSE, echo=FALSE, fig.height=10}
+fam_dates4 <- ggplot(filter(est_fam, family>"M" & family<"P"), aes(x=median_year, y=family)) + 
+              geom_point() 
+fam_dates4
+```
+
+```{r plot2e, warning=FALSE, echo=FALSE, fig.height=10}
+fam_dates5 <- ggplot(filter(est_fam, family>"P" & family<"S"), aes(x=median_year, y=family)) + 
+              geom_point() 
+fam_dates5
+```
+
+```{r plot2f, warning=FALSE, echo=FALSE, fig.height=10}
+fam_dates6 <- ggplot(filter(est_fam, family>"S" & family<"U"), aes(x=median_year, y=family)) + 
+              geom_point() 
+fam_dates6
+```
+
+```{r plot2g, warning=FALSE, echo=FALSE}
+fam_dates7 <- ggplot(filter(est_fam, family>"U" & family<"Z"), aes(x=median_year, y=family)) + 
+              geom_point() 
+fam_dates7
+```
+
+```{r plot3, warning=FALSE, echo=FALSE, fig.height=10, eval=FALSE}
+fam_dates_later <- ggplot(filter(est_fam, median_year>1800), aes(x=median_year, y=family)) + 
+                   geom_point()
+fam_dates_later
+```
+
+```{r plot4, warning=FALSE, echo=FALSE}
+ord_dates <- ggplot(est_ord, aes(x=median_year, y=order)) +
+             geom_point()
+ord_dates            
+```
+
