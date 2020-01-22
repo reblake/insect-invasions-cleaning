@@ -38,7 +38,8 @@ without_dates <- nrow(filter(occ_fam, is.na(year)))
 (with_dates/total)*100
 
 ```
-
+  
+    
 ```{r prep2, echo=FALSE, message=FALSE}
 est_dates <- occ_fam %>% filter(!is.na(year)) %>% 
              mutate(year = as.factor(year))
@@ -62,13 +63,22 @@ est_ord <- occ_fam %>% filter(!is.na(year)) %>% arrange(year) %>%
            distinct()
         
 ```
-
+  
 ```{r plot1, warning=FALSE, echo=FALSE}
 h_dates <- ggplot(est_dates, aes(x=year)) + 
            geom_histogram(stat="count") + 
            theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + 
            scale_x_discrete(breaks = levels(est_dates$year)[c(T, rep(F, 9))])
 h_dates
+```
+
+```{r plot1a, warning=FALSE, echo=FALSE, fig.height=8, fig.width=7}
+h_dates_f <- ggplot(est_dates, aes(x=year)) + 
+             geom_histogram(stat="count") + 
+             theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + 
+             scale_x_discrete(breaks = levels(est_dates$year)[c(T, rep(F, 19))]) + 
+             facet_wrap(order~.)
+h_dates_f
 ```
 
 ```{r plot2, warning=FALSE, echo=FALSE, fig.height=10}
