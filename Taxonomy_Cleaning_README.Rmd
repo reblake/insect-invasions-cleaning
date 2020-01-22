@@ -19,7 +19,7 @@ file.info(tables, extra_cols = FALSE)[,c(1,5)]
 ```
 
 ## Reason for last update:
-Added 14 non-plant feeders to Australian establishment list.
+Additional cleaning of establishment years.
 
 ## Taxonomic Database Citations
 ```{r citations, echo=FALSE}
