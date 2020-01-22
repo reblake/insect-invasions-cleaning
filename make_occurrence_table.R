@@ -66,6 +66,9 @@ df_occurr <- occurr_list %>%
                     genus_species = gsub("Mycetophila\xa0vulgaris", "Mycetophila vulgaris", genus_species),
                     genus_species = gsub("Mycetophila\xa0marginepunctata", "Mycetophila marginepunctata", genus_species),
                     ) %>%         
+             # clean up year column
+             mutate(year = ifelse(year == "N/A", NA_character_, year),
+                    year = gsub("\\s", "", year, perl=TRUE)) %>% 
              # clean up intentional release column
              mutate(intentional_release = ifelse(intentional_release %in% c("N"), "No", 
                                           ifelse(intentional_release %in% c("1", "I"), "Yes", intentional_release))) %>% 
