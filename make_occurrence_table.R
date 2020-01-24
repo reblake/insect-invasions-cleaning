@@ -84,10 +84,11 @@ tax_table <- read.csv("./data/clean_data/taxonomy_table.csv", stringsAsFactors=F
 
 # make final occurrence dataframe
 occurr_df <- df_occurr %>%
-             mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE)) %>% # remove rogue white spaces
+             mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE)) %>%  # remove rogue white spaces
              dplyr::rename(user_supplied_name = genus_species) %>% # have to rename genus_species to user_supplied_name so matches are correct
              dplyr::left_join(y = select(tax_table, c(user_supplied_name, taxon_id, genus_species)),
                               by = "user_supplied_name") %>% # join in the taxonomy info
+             mutate(genus_species = gsub("<a0>", " ", genus_species, perl=TRUE)) %>% 
              select(taxon_id, everything()) %>% # make taxon_id column the first column
              dplyr::arrange(region) # order by region
 
