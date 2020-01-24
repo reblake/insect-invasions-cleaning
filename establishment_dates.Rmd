@@ -10,7 +10,8 @@ library(tidyverse)
 
 # read in tables
 occ_table <- read_csv("/nfs/insectinvasions-data/data/clean_data/occurrence_table.csv", col_types = "ncccccccccccccnnc")
-tax_table <- read_csv("/nfs/insectinvasions-data/data/clean_data/taxonomy_table.csv")
+tax_table <- read.csv("/nfs/insectinvasions-data/data/clean_data/taxonomy_table.csv", stringsAsFactors=F)
+att_table <- read.csv("/nfs/insectinvasions-data/data/clean_data/attribute_table.csv", stringsAsFactors=F)
 
 # function to collapse rows with multiple entries
 coalesce_by_column <- function(df) {
@@ -19,12 +20,30 @@ coalesce_by_column <- function(df) {
 ```
 
 ```{r prep, echo=FALSE, message=FALSE}
-tax_cols <- tax_table %>% select(taxon_id, user_supplied_name, order, family, genus_species)
-
+tax_cols <- tax_table %>% 
+            mutate(genus_species = gsub("<a0>", " ", genus_species, perl=TRUE)) %>% 
+            select(taxon_id, user_supplied_name, order, family, genus_species)
+            
 occ_fam <- occ_table %>% 
            mutate(year = ifelse(year == "N/A", NA_character_, year)) %>% 
-           select(taxon_id, user_supplied_name, year, origin, region, genus_species) %>% 
-           left_join(tax_cols)
+           select(taxon_id, user_supplied_name, year, genus_species) %>% 
+           full_join(tax_cols)
+
+attr_cols <- att_table %>% 
+             select_all(~gsub("\\s+", "_", .)) %>% 
+             select(-plant_feeding, -notes, -intentional_release, -present_status, -first_record_orig, -host_type, 
+                    -established_indoors_or_outdoors, -host_group, -phagy, -pest_type, -dist, -ecozone,
+                    -current_distribution_cosmopolitan_, -phagy_main, -feeding_type, -feeding_main, 
+                    -confirmed_establishment, -ever_introduced_anywhere) %>% 
+             mutate(origin_defined = ifelse(origin_Nearctic == 1, "Nearctic", 
+                                            ifelse(origin_Neotropic == 1, "Neotropic",
+                                                   ifelse(origin_European_Palearctic == 1, "Euro_Palearctic",
+                                                          ifelse(origin_Asian_Palearctic == 1, "Asia_Palearctic",
+                                                                 ifelse(origin_Indomalaya == 1, "Indomalaya",
+                                                                        ifelse(origin_Afrotropic == 1, "Afrotropic",
+                                                                               ifelse(origin_Australasia == 1, "Australasia",
+                                                                                      ifelse(origin_Oceania == 1, "Oceania", NA_character_))))))))) %>% 
+             select(taxon_id, genus_species, order, family, origin_defined)
 
 ```
 
@@ -39,10 +58,32 @@ without_dates <- nrow(filter(occ_fam, is.na(year)))
 
 ```
   
-    
+```{r no_order, echo=FALSE, include=FALSE}  
+## rows without order (also note rows without taxon ID)
+n <- occ_fam %>% filter(is.na(order))
+no_order <- unlist(n$user_supplied_name, use.names = FALSE)
+filter(occ_fam, user_supplied_name %in% no_order)
+```
+  
 ```{r prep2, echo=FALSE, message=FALSE}
 est_dates <- occ_fam %>% filter(!is.na(year)) %>% 
              mutate(year = as.factor(year))
+
+est_dates_20 <- occ_fam %>% 
+                filter(!is.na(year),
+                       year>1899,
+                       order %in% c("Coleoptera", "Diptera", "Hemiptera", "Hymenoptera", "Lepidoptera", "Thysanoptera")
+                       ) %>% 
+                mutate(year = as.factor(year))
+
+est_col_spike <- occ_table %>% 
+                 mutate(year = ifelse(year == "N/A", NA_character_, year)) %>% 
+                 select(taxon_id, user_supplied_name, year, region, genus_species) %>% 
+                 full_join(attr_cols, by = "taxon_id") %>% 
+                 full_join(tax_cols) %>% 
+                 filter(order == "Coleoptera",
+                        year>1879 & year<1890) %>% 
+                 mutate(year = as.factor(year))
 
 est_fam <- occ_fam %>% filter(!is.na(year)) %>% arrange(year) %>% 
            mutate(year = gsub("\\D", "", year, perl=TRUE)) %>% 
@@ -61,8 +102,28 @@ est_ord <- occ_fam %>% filter(!is.na(year)) %>% arrange(year) %>%
            ungroup() %>% 
            select(order, median_year) %>% 
            distinct()
+
+est_col_20 <- occ_fam %>% 
+              filter(order %in% c("Coleoptera", "Diptera", "Hemiptera", "Hymenoptera", "Lepidoptera", "Thysanoptera"),
+                     year>1899) %>% 
+              mutate(year = gsub("\\D", "", year, perl=TRUE), 
+                     year = as.numeric(year)) %>% 
+              group_by(order) %>% 
+              mutate(median_year = round(median(year))) %>% 
+              ungroup() %>% 
+              select(order, median_year) %>% 
+              distinct()
         
 ```
+  
+```{r prep3, echo=FALSE, message=FALSE}
+plot_dots <- function(subdata, ycol){
+             ggplot({{subdata}}, aes(x=median_year, y={{ycol}})) + 
+             geom_point() 
+             }
+  
+```
+  
   
 ```{r plot1, warning=FALSE, echo=FALSE}
 h_dates <- ggplot(est_dates, aes(x=year)) + 
@@ -81,63 +142,68 @@ h_dates_f <- ggplot(est_dates, aes(x=year)) +
 h_dates_f
 ```
 
+```{r plot1b, warning=FALSE, echo=FALSE, fig.height=8, fig.width=7}
+h_dates_later <- ggplot(est_dates_20, aes(x=year)) + 
+                 geom_histogram(stat="count") +
+                 theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + 
+                 scale_x_discrete(breaks = levels(est_dates$year)[c(T, rep(F, 19))]) + 
+                 facet_wrap(order~.)
+h_dates_later
+```
+
+```{r plot1c, warning=FALSE, echo=FALSE}
+col_lots <- ggplot(est_col_spike, aes(x=year)) +
+            geom_histogram(stat = "count") + labs(title = "Coleoptera") +
+            theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + 
+            scale_x_discrete(breaks = levels(est_dates$year)[c(T, rep(F, 1))])
+col_lots
+```
+
+```{r plot1d, warning=FALSE, echo=FALSE}
+col_o <- ggplot(filter(est_col_spike, year == 1885), aes(x=region)) +
+         geom_histogram(stat = "count") + labs(title = "Coleoptera 1885") +
+         theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+         facet_wrap(origin_defined~.)
+col_o
+```
+
+```{r plot3, warning=FALSE, echo=FALSE}
+plot_dots(est_ord, order)           
+```
+
+```{r plot3a, warning=FALSE, echo=FALSE}
+p3a <- plot_dots(est_col_20, order)
+p3a + labs(title = "Establishments >1900 by top six orders") + scale_x_continuous(breaks = c(1956, 1958, 1960, 1962, 1964, 1966, 1968))
+```
+
 ```{r plot2, warning=FALSE, echo=FALSE, fig.height=10}
-fam_dates1 <- ggplot(filter(est_fam, family<"C"), aes(x=median_year, y=family)) + 
-              geom_point() 
-fam_dates1
+plot_dots(filter(est_fam, family<"C"), family)
 ```
 
 ```{r plot2a, warning=FALSE, echo=FALSE, fig.height=10}
-fam_dates1 <- ggplot(filter(est_fam, family>"C" & family<"D"), aes(x=median_year, y=family)) + 
-              geom_point() 
-fam_dates1
+plot_dots(filter(est_fam, family>"C" & family<"D"), family)
 ```
 
 ```{r plot2b, warning=FALSE, echo=FALSE, fig.height=10}
-fam_dates2 <- ggplot(filter(est_fam, family>"D" & family<"H"), aes(x=median_year, y=family)) + 
-              geom_point() 
-fam_dates2
+plot_dots(filter(est_fam, family>"D" & family<"H"), family)
 ```
 
 ```{r plot2c, warning=FALSE, echo=FALSE, fig.height=10}
-fam_dates3 <- ggplot(filter(est_fam, family>"H" & family<"M"), aes(x=median_year, y=family)) + 
-              geom_point() 
-fam_dates3
+plot_dots(filter(est_fam, family>"H" & family<"M"), family)
 ```
 
 ```{r plot2d, warning=FALSE, echo=FALSE, fig.height=10}
-fam_dates4 <- ggplot(filter(est_fam, family>"M" & family<"P"), aes(x=median_year, y=family)) + 
-              geom_point() 
-fam_dates4
+plot_dots(filter(est_fam, family>"M" & family<"P"), family)
 ```
 
 ```{r plot2e, warning=FALSE, echo=FALSE, fig.height=10}
-fam_dates5 <- ggplot(filter(est_fam, family>"P" & family<"S"), aes(x=median_year, y=family)) + 
-              geom_point() 
-fam_dates5
+plot_dots(filter(est_fam, family>"P" & family<"S"), family)
 ```
 
 ```{r plot2f, warning=FALSE, echo=FALSE, fig.height=10}
-fam_dates6 <- ggplot(filter(est_fam, family>"S" & family<"U"), aes(x=median_year, y=family)) + 
-              geom_point() 
-fam_dates6
+plot_dots(filter(est_fam, family>"S" & family<"U"), family)
 ```
 
 ```{r plot2g, warning=FALSE, echo=FALSE}
-fam_dates7 <- ggplot(filter(est_fam, family>"U" & family<"Z"), aes(x=median_year, y=family)) + 
-              geom_point() 
-fam_dates7
+plot_dots(filter(est_fam, family>"U" & family<"Z"), family)
 ```
-
-```{r plot3, warning=FALSE, echo=FALSE, fig.height=10, eval=FALSE}
-fam_dates_later <- ggplot(filter(est_fam, median_year>1800), aes(x=median_year, y=family)) + 
-                   geom_point()
-fam_dates_later
-```
-
-```{r plot4, warning=FALSE, echo=FALSE}
-ord_dates <- ggplot(est_ord, aes(x=median_year, y=order)) +
-             geom_point()
-ord_dates            
-```
-
