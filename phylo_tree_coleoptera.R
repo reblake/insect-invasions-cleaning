@@ -5,7 +5,7 @@
 
 library(tidyverse) ; library(rgbif)
 
-### This info comes from the GBIH backbone taxonomy.
+### This info comes from the GBIF backbone taxonomy.
 
 get_order_fams <- function(order_name){
                   # get key for Order 
