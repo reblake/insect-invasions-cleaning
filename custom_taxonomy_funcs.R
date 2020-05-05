@@ -345,7 +345,73 @@ separate_attributes <- function(df_location){
                        }
                          
                          
-                         
+######################
+# get only accepted family info from GBIF
+get_accepted_families <- function(taxa_name){
+                         # get taxa ids, authoritative names, and names higher up 
+                         id <- get_gbifid_(taxa_name)  # gets ID from GBIF
+  
+                         # deal with cases where species name not found
+                         if (nrow(id[[1]]) == 0) {data.frame(user_supplied_name = taxa_name,
+                                                             family = "not found")
+    
+                         } else { 
+                         xtra_cols <- c(#"rank", "status", "matchtype", "confidence", "synonym", "acceptedusagekey",
+                                        "kingdomkey", "phylumkey", "classkey", "orderkey", "familykey", "note")
+    
+                         # puts ID info into one dataframe
+                         tax_id <- map_df(id, ~as.data.frame(.x), .id="user_supplied_name")
+    
+                         id_insect <- tax_id %>% 
+                                      mutate_if(is.logical, as.character) %>% 
+                                      # filter to kingdom, phylum, class
+                                      dplyr::filter(kingdom == "Animalia"  | is.na(kingdom)) %>%  
+                                      dplyr::filter(if(!("phylum" %in% names(.))) {TRUE} else {
+                                                    phylum == "Arthropoda" | is.na(phylum)}) %>%  
+                                      dplyr::filter(if(!("class" %in% names(.))) {TRUE} else {
+                                                    class == "Insecta"  | is.na(class)})
+    
+                                      if (nrow(id_insect) == 0) {id_insect
+                                      } else {
+                                      # filter dataframe for accepted names
+                                      id_acc <- id_insect %>% 
+                                      # filter to best matched name
+                                      dplyr::filter(if (any(status %in% c("ACCEPTED") & matchtype %in% c("EXACT"))){ 
+                                                        status == "ACCEPTED" & matchtype == "EXACT"
+                                                    } else if (any(status %in% c("SYNONYM") & matchtype %in% c("EXACT"))) {
+                                                               status == "SYNONYM" & matchtype == "EXACT"
+                                                    } else if (any(status %in% c("DOUBTFUL") & matchtype %in% c("EXACT"))) {
+                                                               status == "DOUBTFUL" & matchtype == "EXACT"
+                                                    } else if (any(status %in% c("ACCEPTED") & matchtype %in% c("HIGHERRANK"))) {
+                                                               status == "ACCEPTED" & matchtype == "HIGHERRANK"  
+                                                    } else if (any(status %in% c("DOUBTFUL") & matchtype %in% c("HIGHERRANK"))) {
+                                                               status == "DOUBTFUL" & matchtype == "HIGHERRANK"
+                                                    } else if (any(status %in% c("ACCEPTED") & matchtype %in% c("FUZZY"))) {
+                                                               status == "ACCEPTED" & matchtype == "FUZZY"
+                                                    } else if (any(status %in% c("SYNONYM") & matchtype %in% c("FUZZY"))) {
+                                                               status == "SYNONYM" & matchtype == "FUZZY" 
+                                                    } else {row_number() == 1 
+                                                    }) %>%  
+                                      mutate_if(is.logical, as.character) %>% 
+                                      select(-one_of(xtra_cols)) 
+                            
+                         id_acc <- if (nrow(id_acc)>1) {id_acc[1,]} else {id_acc} # if more than one row, select first row
+                             
+                         # make df of all taxonomic info from GBIF
+                         tax_gbif <- id_acc %>%
+                                     # get authority
+                                     mutate(taxonomic_authority = ifelse(sapply(strsplit(scientificname, " "), length) == 1,
+                                                                  NA_character_,
+                                                                  gsub("^\\w+\\s+\\w+\\s+(.*)", "\\1", scientificname))) %>%
+                                     mutate(taxonomy_system = "GBIF") %>% # fill in taxonomy system source
+                                     select(-scientificname, -canonicalname, -confidence) %>% 
+                                     mutate_if(is.logical, as.character) 
+      
+                         return(tax_gbif)
+                         }
+                        }
+                       }
+
                          
                          
                          
