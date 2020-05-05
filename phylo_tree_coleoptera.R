@@ -195,5 +195,3 @@ readr::write_csv(df_sp_counts, "/nfs/insectinvasions-data/data/clean_data/coleop
 
 
 
-
-rank=SPECIES  highertaxon_key=4752 status=ACCEPTED status=DOUBTFUL
