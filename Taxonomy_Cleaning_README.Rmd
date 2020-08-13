@@ -3,9 +3,11 @@ title: "README for Insect Invasions Taxonomic Tables"
 output: pdf_document
 ---
 
-```{r libraries, echo=FALSE}
+```{r libs, echo=FALSE, message=FALSE}
+# NOTE: Do not Knit this file normally.  Just run the last code chunk to knit a PDF to a different location.  
+
 knitr::opts_chunk$set(comment = NA)
-library(ezknitr); library("rmarkdown")
+library(ezknitr); library(rmarkdown); library(taxize); library(dplyr)
 
 in_dir <- "~/insect_invasions/example_code"
 out_dir <- "/nfs/insectinvasions-data/data/clean_data"
@@ -19,7 +21,7 @@ file.info(tables, extra_cols = FALSE)[,c(1,5)]
 ```
 
 ## Reason for last update:
-Additional cleaning of establishment years.
+Updates to South Korea input file to add intentional release column.  Updates to Galapagos file to the Causton 2006 source list.  
 
 ## Taxonomic Database Citations
 ```{r citations, echo=FALSE}
@@ -108,7 +110,7 @@ Note: All tables have Taxon ID column, which is unique ID for each cleaned taxa
 2. use a join to make the tables into one dataframe
 
 
-```{r knit, echo=FALSE, message=FALSE, error=FALSE}
+```{r knit, echo=FALSE, message=FALSE, error=FALSE, eval=FALSE, include=FALSE}
 ezknit(file = paste0(in_dir, "/Taxonomy_Cleaning_README.Rmd"), out_dir = out_dir, keep_html = FALSE)
 
 render(paste0(out_dir, "/Taxonomy_Cleaning_README.md"), output_format = "pdf_document")
