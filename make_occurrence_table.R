@@ -38,6 +38,9 @@ df_occurr <- occurr_list %>%
              mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE)) %>% # remove rogue white spaces
              # remove Arachnid
              filter(!(genus_species == "Trixacarus caviae")) %>% 
+             # add blank country and present_status columns because they were removed in edits of the raw data files (Aug 14, 2020)
+             mutate(country = '',
+                    present_status = '') %>% 
              # fill in country column with canada_or_us info
              mutate(country = ifelse(is.na(country) & canada_or_us %in% c("Canada", "Us", "Us, may not actually be adventive"), 
                                      canada_or_us, country),
