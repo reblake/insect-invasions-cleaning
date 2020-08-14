@@ -1,0 +1,9 @@
+# R
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.RProj
+
+# data source
+nfs_data

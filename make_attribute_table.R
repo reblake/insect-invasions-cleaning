@@ -7,15 +7,12 @@
 # Load packages needed for this script
 library(tidyverse) ; library(readxl) ; library(purrr) 
 
-# source the custom functions 
+# source the custom functions if they aren't in your R environment
 #source("./custom_taxonomy_funcs.R")
 
-# set working directory
-setwd("/nfs/insectinvasions-data")
-
 # List all the data files
-file_list <- dir(path="./data/raw_data/raw_by_country", pattern='*.xlsx')  # makes list of the files
-file_listp <- paste0("./data/raw_data/raw_by_country/", file_list)         # adds path to file names
+file_list <- dir(path="nfs_data/data/raw_data/raw_by_country", pattern='*.xlsx')  # makes list of the files
+file_listp <- paste0("nfs_data/data/raw_data/raw_by_country/", file_list)         # adds path to file names
 
 #####################################
 ### Making the attribute table    ###

@@ -7,11 +7,9 @@
 # Load packages needed for this script
 library(tidyverse) ; library(readxl) ; library(purrr) ; library(countrycode)
 
-# source the custom functions 
+# source the custom functions if they aren't in your R environment
 #source("./custom_taxonomy_funcs.R")
 
-# set working directory
-setwd("/nfs/insectinvasions-data")
 
 # # checks to see if clean flat files exist, otherwise creates them from multi-worksheet files
 # if(!file.exists("./data/raw_data/seebens_clean.csv")|
@@ -21,8 +19,8 @@ setwd("/nfs/insectinvasions-data")
 #            }
 
 # List all the data files
-file_list <- dir(path="./data/raw_data/raw_by_country", pattern='*.xlsx')  # makes list of the files
-file_listp <- paste0("./data/raw_data/raw_by_country/", file_list)         # adds path to file names
+file_list <- dir(path="nfs_data/data/raw_data/raw_by_country", pattern='*.xlsx')  # makes list of the files
+file_listp <- paste0("nfs_data/data/raw_data/raw_by_country/", file_list)         # adds path to file names
 
 
 #####################################
