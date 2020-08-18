@@ -133,7 +133,7 @@ go_vec <- unlist(genus_only$user_supplied_name, use.names = FALSE)
 # apply the function over the vector of species names
 tax_go_l <- lapply(go_vec, get_more_info) 
 
-# make dataframe of all species rank matches
+# make dataframe of all species rank matches that were originally genus only
 suppressMessages(
 tax_go <- tax_go_l %>% 
           purrr::reduce(full_join) %>% # join all data frames from list
@@ -144,6 +144,25 @@ tax_go <- tax_go_l %>%
                  genus_species = ifelse(is.na(species), paste(genus, "sp"), species)) %>% 
           select(-matched_name2)
 )
+
+# send the species rank back through GBIF to identify synonyms
+synon_l <- lapply(tax_go$genus_species, get_accepted_taxonomy)
+
+# How many synonyms were found on retesting in GBIF?
+suppressMessages(
+synon_retest <- synon_l %>%
+                purrr::reduce(full_join) %>%
+                mutate(genus_species = str_squish(genus_species)) %>%
+                select(-one_of(xtra_cols)) %>% 
+                filter(synonym == TRUE & rank == "species")
+)
+
+# tax_go results minus the two retested synonyms
+syn <- synon_retest$user_supplied_name
+
+tax_go2 <- tax_go %>% 
+           filter(!(genus_species %in% syn))
+
                  
 # How many did not return lower rank? 
 suppressMessages(
@@ -207,7 +226,7 @@ genus_matches <- no_lower_genus %>%
                  dplyr::rename(genus_species = matched_name2)
 
 # bring in manual corrections 
-sal_taxa <- read_csv("./data/raw_data/taxonomic_reference/genus_only_resolution_FIXED.csv", trim_ws = TRUE,
+sal_taxa <- read_csv("nfs_data/data/raw_data/taxonomic_reference/genus_only_resolution_FIXED.csv", trim_ws = TRUE,
                      col_types = cols(up_to_date_name = col_character()))
 
 # add manual corrections to correct genus-level only matches
@@ -221,7 +240,8 @@ genus_match_SAL <- genus_matches %>%
                              species = ifelse(!(is.na(genus_species.y)) & rank == "species",
                                               genus_species.y, NA_character_),
                              genus_species = ifelse(!(is.na(genus_species.y)), genus_species.y, genus_species.x),
-                             rank, synonym)
+                             rank, synonym) %>% 
+                   mutate(synonym = as.character(synonym))
 
 manually_matched <- subset(genus_match_SAL, (user_supplied_name %in% sal_taxa$user_supplied_name))
 
@@ -239,9 +259,10 @@ man_correct_remain <- subset(sal_taxa, !(user_supplied_name %in% manually_matche
 # put together dataframes with new info
 
 new_sp_info <- tax_nf %>% 
-               full_join(tax_go) %>% 
+               full_join(tax_go2) %>% 
                dplyr::left_join(select(genus_only, user_supplied_name, kingdom,   # this and the transmute adds back in the higher rank info
                                 phylum, class, order, family), by = "user_supplied_name") %>% 
+               full_join(synon_retest) %>% 
                full_join(manually_matched) %>%  # df of manual corrections  
                mutate(genus = ifelse(is.na(genus), word(genus_species, 1), genus),
                       rank = ifelse(is.na(rank) & str_count(genus_species, '\\w+')%in% c(2,3),  
@@ -252,7 +273,7 @@ new_sp_info <- tax_nf %>%
 
 ########
 # bring in new non-plant-feeding Australian taxa from Helen
-new_npf_aus <- read_csv("./data/clean_data/new_Aussie_npf_taxa.csv", trim_ws = TRUE, col_types = "cnccccccccccccccn")
+new_npf_aus <- read_csv("nfs_data/data/clean_data/new_Aussie_npf_taxa.csv", trim_ws = TRUE, col_types = "cnccccccccccccccn")
 
                
 #######################################################################
@@ -264,9 +285,11 @@ tax_combo <- dplyr::filter(tax_acc, rank %in% c("species", "subspecies")) %>% # 
              full_join(new_sp_info, by = "user_supplied_name") %>%  # bind in the new info from auto and manual resolution
              transmute(user_supplied_name,  
                        rank = ifelse(is.na(rank.y), rank.x, rank.y),
-                       status, matchtype, usagekey,
+                       status = ifelse(is.na(status.y), status.x, status.y), 
+                       matchtype = ifelse(is.na(matchtype.y), matchtype.x, matchtype.y), 
+                       usagekey = ifelse(is.na(usagekey.y), usagekey.x, usagekey.y),
                        synonym = ifelse(is.na(synonym.y), synonym.x, synonym.y),
-                       acceptedusagekey,
+                       acceptedusagekey = ifelse(is.na(acceptedusagekey.y), acceptedusagekey.x, acceptedusagekey.y), 
                        kingdom = ifelse(is.na(kingdom.y), kingdom.x, kingdom.y),
                        phylum = ifelse(is.na(phylum.y), phylum.x, phylum.y), 
                        class = ifelse(is.na(class.y), class.x, class.y), 
@@ -276,7 +299,7 @@ tax_combo <- dplyr::filter(tax_acc, rank %in% c("species", "subspecies")) %>% # 
                        species = ifelse(is.na(species.y), species.x, species.y),
                        genus_species = ifelse(is.na(genus_species.y), genus_species.x, genus_species.y),
                        taxonomy_system = ifelse(is.na(taxonomy_system.y), taxonomy_system.x, taxonomy_system.y),
-                       taxonomic_authority) %>% 
+                       taxonomic_authority = ifelse(is.na(taxonomic_authority.y), taxonomic_authority.x, taxonomic_authority.y)) %>% 
              dplyr::filter(!(is.na(user_supplied_name))) # remove blank rows
 
 # subset remaining manual fixes for those user supplied names that are in tax_combo to get rows that need to be replaced
@@ -320,7 +343,7 @@ tax_final <- tax_combo %>%
 ### Write file                    ###
 #####################################
 # write the clean taxonomy table to a CSV file
-readr::write_csv(tax_final, "./data/clean_data/taxonomy_table.csv")
+readr::write_csv(tax_final, "nfs_data/data/clean_data/taxonomy_table.csv")
 
 
 
