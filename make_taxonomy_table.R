@@ -157,6 +157,8 @@ synon_retest <- synon_l %>%
                 filter(synonym == TRUE & rank == "species")
 )
 
+# tax_go[tax_go$genus_species %in% c("Exochomus quadripustulatus", "Opius makii"),]
+
 # tax_go results minus the two retested synonyms
 syn <- synon_retest$user_supplied_name
 
@@ -300,6 +302,9 @@ tax_combo <- dplyr::filter(tax_acc, rank %in% c("species", "subspecies")) %>% # 
                        genus_species = ifelse(is.na(genus_species.y), genus_species.x, genus_species.y),
                        taxonomy_system = ifelse(is.na(taxonomy_system.y), taxonomy_system.x, taxonomy_system.y),
                        taxonomic_authority = ifelse(is.na(taxonomic_authority.y), taxonomic_authority.x, taxonomic_authority.y)) %>% 
+             # a bit more cleaning from Rebecca Turner
+             mutate(family = ifelse(family %in% c("Rutelidae","Melolonthidae", "Dynastidae"), "Scarabaeidae", family),
+                    family = ifelse(genus == "Dermestes", "Dermestidae", family)) %>% 
              dplyr::filter(!(is.na(user_supplied_name))) # remove blank rows
 
 # subset remaining manual fixes for those user supplied names that are in tax_combo to get rows that need to be replaced
@@ -327,6 +332,8 @@ tax_final <- tax_combo %>%
                     phylum = ifelse(is.na(phylum), "Arthropoda", phylum),
                     class = ifelse(is.na(class), "Insecta", class),
                     genus_species = ifelse(genus_species == "species not found", NA_character_, genus_species)) %>% 
+             mutate(genus = ifelse(is.na(genus), word(genus_species, 1), genus),
+                    species = ifelse(is.na(species), word(genus_species, 2), species)) %>% 
              # add the unique ID column after all unique species are in one dataframe
              tibble::rowid_to_column("taxon_id")
 
