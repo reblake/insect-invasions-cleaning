@@ -51,5 +51,5 @@ tax_table[!(tax_table$taxon_id %in% rt_aug_file$taxon_id),]   # Finally somethin
 
 anti_join(tax_table, rt_aug_file, by = "taxon_id")  # returns same as line above
 
-diff3 <- anti_join(tax_table, rt_aug_file)  # returns 989 differences
-
+diff3 <- anti_join(tax_table, rt_aug_file)  # returns 899 differences
+str(diff3)
