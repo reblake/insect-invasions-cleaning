@@ -1,0 +1,138 @@
+---
+title: ''
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+#  Diff between Rebecca Turner's taxonomy file and the authoritative taxonomy table
+#  August 14, 2020
+
+
+```{r, message = FALSE}
+library(tidyverse) ; library(testthat)
+```
+
+```{r}
+# Rebecca's file
+rt_aug_file <- read.csv("nfs_data/data/clean_data/taxonomy_table2020Aug12b.csv")
+rt_aug_file <- rt_aug_file %>% arrange(taxon_id)
+
+# taxonomy table
+tax_table <- read.csv("nfs_data/data/clean_data/taxonomy_table.csv")
+tax_table <- tax_table %>% arrange(taxon_id)
+
+nrow(rt_aug_file) ; nrow(tax_table)  #  rows difference
+names(rt_aug_file) ; names(tax_table) # column names difference
+```
+
+
+# Diff between the two files:
+
+```{r}
+anti_join(tax_table, rt_aug_file, by = "taxon_id")  # only diff by taxon_id
+
+diff3 <- anti_join(tax_table, rt_aug_file)  # returns differences
+str(diff3)
+```
+
+
+# I suspect that taxa are being numbered differently between the two cleaning codes, so testing that here:
+```{r}
+# pasting the taxon_id and user_supplied_name columns together to 
+tax_table2 <- tax_table %>% mutate(id_usr_supp_nm = paste(taxon_id, user_supplied_name))
+
+rt_aug_file2 <- rt_aug_file %>% mutate(id_usr_supp_nm = paste(taxon_id, user_supplied_name))
+```
+
+# Yes, there are many rows with different taxon IDs!!
+```{r}
+ # rows of tax_table2 that don't have a match in rt_aug_file2 based on the pasted-together column
+diff4 <- anti_join(tax_table2, rt_aug_file2, by = "id_usr_supp_nm")
+str(diff4)
+
+# rows of rt_aug_file2 that don't have a match in tax_table2
+# diff5 <- anti_join(rt_aug_file2, tax_table2, by = "id_usr_supp_nm") 
+# str(diff5)
+```
+### Not sure how to fix the issue of differing taxon IDs.  Will talk to Rebecca about this and try to resolve in the taxonomic cleaning code.
+
+
+# But there are still other rows that still don't match!!
+```{r}
+# Subset diff3 to remove rows with taxon_id mismatches, leaving all other mismatches
+other_probs <- anti_join(diff3, diff4) %>% arrange(user_supplied_name) %>% 
+               arrange(user_supplied_name)
+
+# get a vector of these taxa
+usr_nms_diff <- other_probs$user_supplied_name
+
+# subset Rebecca's file with these still-mismatching rows
+rt_diff <- rt_aug_file %>% filter(user_supplied_name %in% usr_nms_diff) %>% 
+           arrange(user_supplied_name)
+```
+
+# This is actually quite useful!  Gives a print out of which columns have issues and how many issues.
+```{r, error = TRUE}
+testthat::expect_equal(other_probs, rt_diff)   
+```
+
+# further investigation by column based on testthat results
+```{r}
+column_na_test <- function(column_nm){
+                  tt_df <- other_probs[is.na(other_probs[[column_nm]]), ]
+                  rt_df <- rt_diff[is.na(rt_diff[[column_nm]]), ]
+               
+                  aj_diff <- anti_join(tt_df, rt_df, by = "user_supplied_name")
+                  
+                  aj_diff2 <- anti_join(rt_df, tt_df, by = "user_supplied_name")
+                    
+                  ifelse(nrow(aj_diff) == 0, return_df <- aj_diff2, return_df <- aj_diff)
+                 
+                  return(return_df)
+                  }
+
+```
+
+```{r}
+column_na_test("status")
+```
+
+```{r}
+column_na_test("matchtype")
+```
+
+```{r}
+column_na_test("usagekey")
+```
+
+```{r}
+column_na_test("family")
+```
+
+```{r}
+column_na_test("genus")
+```
+
+```{r}
+sp_test <- column_na_test("species")
+nrow(sp_test)
+sp_test
+```
+
+```{r}
+anti_join(other_probs, rt_diff, by = "synonym")
+```
+
+```{r}
+aj_gs <- anti_join(other_probs, rt_diff, by = "genus_species")
+aj_gs
+```
+
+
+
+
+
+
+
+
