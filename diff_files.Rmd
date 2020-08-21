@@ -129,7 +129,7 @@ aj_gs <- anti_join(other_probs, rt_diff, by = "genus_species")
 aj_gs
 ```
 
-
+### Note: I'm disregarding the 328 mismatches in taxonomic_authority column, as those are not critical
 
 
 
