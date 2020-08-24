@@ -8,7 +8,7 @@
 library(tidyverse) ; library(readxl) ; library(purrr) 
 
 # source the custom functions if they aren't in your R environment
-#source("./custom_taxonomy_funcs.R")
+#source("nfs_data/custom_taxonomy_funcs.R")
 
 # List all the data files
 file_list <- dir(path="nfs_data/data/raw_data/raw_by_country", pattern='*.xlsx')  # makes list of the files
@@ -60,14 +60,14 @@ df_attrib <- attrib_list %>%
                     ) 
 
 # bring in taxonomic table for order, family, and genus columns
-tax_table <- read_csv("/nfs/insectinvasions-data/data/clean_data/taxonomy_table.csv")
+tax_table <- read_csv("nfs_data/data/clean_data/taxonomy_table.csv")
 tax_cols <- tax_table %>% select(taxon_id, user_supplied_name, order, family, genus)
 
 # origin_correspondence_table.xlsx for the 8 biogeographic regions
-o_corr_table <- read_excel("/nfs/insectinvasions-data/data/raw_data/taxonomic_reference/origin_correspondence_table.xlsx", trim_ws = TRUE, col_types = "text") 
+o_corr_table <- read_excel("nfs_data/data/raw_data/taxonomic_reference/origin_correspondence_table.xlsx", trim_ws = TRUE, col_types = "text") 
 
 # plant feeding attribute column from the non-plant-feeding_taxa file
-npf_file <- "/nfs/insectinvasions-data/data/raw_data/taxonomic_reference/non-plant-feeding_taxa_updatedOct07.xlsx"
+npf_file <- "nfs_data/data/raw_data/taxonomic_reference/non-plant-feeding_taxa_updatedOct07.xlsx"
 npf_ord <- read_excel(npf_file, sheet = 2, trim_ws = TRUE, col_types = "text")
 npf_fams <- read_excel(npf_file, sheet = 3, trim_ws = TRUE, col_types = "text")
 npf_gen <- read_excel(npf_file, sheet = 4, trim_ws = TRUE, col_types = "text")
@@ -116,7 +116,7 @@ df_attrib_o <- df_attrib %>%
                                                   ifelse(intentional_release %in% c("No"), "No", NA_character_))) %>% 
                ungroup() %>% 
                # coalesce rows to one per species
-               select(-origin, -country_nm, -country, -nz_region) %>% 
+               select(-origin, -country_nm, -nz_region) %>% 
                group_by(genus_species) %>%
                summarise_all(coalesce_by_column) %>% 
                ungroup() %>%    
@@ -131,7 +131,7 @@ df_attrib_o <- df_attrib %>%
 ### Write file                    ###
 #####################################
 # write out the attribute table
-readr::write_csv(df_attrib_o, "/nfs/insectinvasions-data/data/clean_data/attribute_table.csv")
+readr::write_csv(df_attrib_o, "nfs_data/data/clean_data/attribute_table.csv")
 
 
 
