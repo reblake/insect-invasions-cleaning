@@ -81,7 +81,7 @@ df_occurr <- occurr_list %>%
              dplyr::arrange(genus_species) 
 
 # add the unique ID column and delete genus species column(s)
-tax_table <- read.csv("./data/clean_data/taxonomy_table.csv", stringsAsFactors=F)  # read in the taxonomy table
+tax_table <- read.csv("nfs_data/data/clean_data/taxonomy_table.csv", stringsAsFactors=F)  # read in the taxonomy table
 
 # make final occurrence dataframe
 occurr_df <- df_occurr %>%
@@ -91,14 +91,14 @@ occurr_df <- df_occurr %>%
                               by = "user_supplied_name") %>% # join in the taxonomy info
              mutate(genus_species = gsub("<a0>", " ", genus_species, perl=TRUE)) %>% 
              select(taxon_id, everything()) %>% # make taxon_id column the first column
-             dplyr::arrange(region) # order by region
+             dplyr::arrange(taxon_id) # order by taxon_id
 
 
 #####################################
 ### Write file                    ###
 #####################################
 # write the clean occurrence table to a CSV file
-readr::write_csv(occurr_df, "./data/clean_data/occurrence_table.csv")
+readr::write_csv(occurr_df, "nfs_data/data/clean_data/occurrence_table.csv")
 
 
 
