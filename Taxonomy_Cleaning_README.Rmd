@@ -22,6 +22,7 @@ file.info(tables, extra_cols = FALSE)[,c(1,5)]
 
 ## Reason for last update:
 Updates to South Korea input file to add intentional release column.  Updates to Galapagos file to the Causton 2006 source list.  
+Re-run all `make_XXX_table.R` scripts to update tables.  
 
 ## Taxonomic Database Citations
 ```{r citations, echo=FALSE}
