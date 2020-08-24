@@ -132,7 +132,40 @@ aj_gs
 ### Note: I'm disregarding the 328 mismatches in taxonomic_authority column, as those are not critical
 
 
+# Check Occurrence table for taxon ID matches
+```{r}
+# Read in the occurrance table:
+occ_tab <- read.csv("nfs_data/data/clean_data/occurrence_table.csv", stringsAsFactors=F)  # read in the occurrence table
 
+```
 
+```{r}
+# random subset to check matching
+tt <- tax_table %>% filter(taxon_id %in% 500:520) # subset taxonomy table
+
+oc <- occ_tab %>% filter(taxon_id %in% 500:520) # subset occurrence table
+
+nrow(tt) ; nrow(oc)
+
+```
+
+```{r}
+anti_join(tt, oc)
+
+```
+
+```{r, error = TRUE}
+expect_equal(tt,oc)
+```
+
+```{r}
+tt
+```
+
+```{r}
+oc
+```
+
+### Taxon IDs match between taxonomy table and occurrence table
 
 
