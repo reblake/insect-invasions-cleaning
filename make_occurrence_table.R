@@ -8,14 +8,14 @@
 library(tidyverse) ; library(readxl) ; library(purrr) ; library(countrycode)
 
 # source the custom functions if they aren't in your R environment
-#source("./custom_taxonomy_funcs.R")
+#source("nfs_data/custom_taxonomy_funcs.R")
 
 
 # # checks to see if clean flat files exist, otherwise creates them from multi-worksheet files
-# if(!file.exists("./data/raw_data/seebens_clean.csv")|
-#    !file.exists("./data/raw_data/raw_by_country/New Zealand_Edney_Browne_2018_clean.xlsx")) {
-#            source("./scripts/clean_seebens.R")
-#            source("./scripts/clean_new_zealand.R")
+# if(!file.exists("nfs_data/data/raw_data/seebens_clean.csv")|
+#    !file.exists("nfs_data/data/raw_data/raw_by_country/New Zealand_Edney_Browne_2018_clean.xlsx")) {
+#            source("nfs_data/scripts/clean_seebens.R")
+#            source("nfs_data/scripts/clean_new_zealand.R")
 #            }
 
 # List all the data files
