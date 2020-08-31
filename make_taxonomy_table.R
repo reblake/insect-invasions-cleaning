@@ -145,25 +145,25 @@ tax_go <- tax_go_l %>%
           select(-matched_name2)
 )
 
-# send the species rank back through GBIF to identify synonyms
-synon_l <- lapply(tax_go$genus_species, get_accepted_taxonomy)
-
-# How many synonyms were found on retesting in GBIF?
-suppressMessages(
-synon_retest <- synon_l %>%
-                purrr::reduce(full_join) %>%
-                mutate(genus_species = str_squish(genus_species)) %>%
-                select(-one_of(xtra_cols)) %>% 
-                filter(synonym == TRUE & rank == "species")
-)
-
-# tax_go[tax_go$genus_species %in% c("Exochomus quadripustulatus", "Opius makii"),]
-
-# tax_go results minus the two retested synonyms
-syn <- synon_retest$user_supplied_name
-
-tax_go2 <- tax_go %>% 
-           filter(!(genus_species %in% syn))
+# # send the species rank back through GBIF to identify synonyms
+# synon_l <- lapply(tax_go$genus_species, get_accepted_taxonomy)
+# 
+# # How many synonyms were found on retesting in GBIF?
+# suppressMessages(
+# synon_retest <- synon_l %>%
+#                 purrr::reduce(full_join) %>%
+#                 mutate(genus_species = str_squish(genus_species)) %>%
+#                 select(-one_of(xtra_cols)) %>% 
+#                 filter(synonym == TRUE & rank == "species")
+# )
+# 
+# # tax_go[tax_go$genus_species %in% c("Exochomus quadripustulatus", "Opius makii"),]
+# 
+# # tax_go results minus the two retested synonyms
+# syn <- synon_retest$user_supplied_name
+# 
+# tax_go2 <- tax_go %>% 
+#            filter(!(genus_species %in% syn))
 
                  
 # How many did not return lower rank? 
@@ -229,7 +229,7 @@ genus_matches <- no_lower_genus %>%
 
 # bring in manual corrections 
 sal_taxa <- read_csv("nfs_data/data/raw_data/taxonomic_reference/genus_only_resolution_FIXED.csv", trim_ws = TRUE,
-                     col_types = cols(up_to_date_name = col_character()))
+                     col_types = cols(up_to_date_name = col_character())) 
 
 # add manual corrections to correct genus-level only matches
 genus_match_SAL <- genus_matches %>% 
@@ -264,7 +264,7 @@ new_sp_info <- tax_nf %>%
                full_join(tax_go2) %>% 
                dplyr::left_join(select(genus_only, user_supplied_name, kingdom,   # this and the transmute adds back in the higher rank info
                                 phylum, class, order, family), by = "user_supplied_name") %>% 
-               full_join(synon_retest) %>% 
+               # full_join(synon_retest) %>% 
                full_join(manually_matched) %>%  # df of manual corrections  
                mutate(genus = ifelse(is.na(genus), word(genus_species, 1), genus),
                       rank = ifelse(is.na(rank) & str_count(genus_species, '\\w+')%in% c(2,3),  
@@ -314,7 +314,7 @@ tax_combo <- dplyr::filter(tax_acc, rank %in% c("species", "subspecies")) %>% # 
 tax_final <- tax_combo %>% 
              full_join(man_correct_remain, by = "user_supplied_name") %>% 
              transmute(user_supplied_name, 
-                       status = ifelse(!is.na(rank.y), NA_character_, status), 
+                       status , #= ifelse(!is.na(rank.y), NA_character_, status), 
                        matchtype = ifelse(!is.na(rank.y), NA_character_, matchtype), 
                        usagekey = ifelse(!is.na(rank.y), NA_character_, usagekey), 
                        rank = ifelse(!is.na(rank.y), rank.y, rank.x), 
@@ -334,6 +334,7 @@ tax_final <- tax_combo %>%
                     genus_species = ifelse(genus_species == "species not found", NA_character_, genus_species)) %>% 
              mutate(genus = ifelse(is.na(genus), word(genus_species, 1), genus),
                     species = ifelse(is.na(species), word(genus_species, 2), species)) %>% 
+             arrange(user_supplied_name) %>% 
              # add the unique ID column after all unique species are in one dataframe
              tibble::rowid_to_column("taxon_id")
 
