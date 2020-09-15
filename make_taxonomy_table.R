@@ -261,7 +261,7 @@ man_correct_remain <- subset(sal_taxa, !(user_supplied_name %in% manually_matche
 # put together dataframes with new info
 
 new_sp_info <- tax_nf %>% 
-               full_join(tax_go2) %>% 
+               full_join(tax_go) %>% 
                dplyr::left_join(select(genus_only, user_supplied_name, kingdom,   # this and the transmute adds back in the higher rank info
                                 phylum, class, order, family), by = "user_supplied_name") %>% 
                # full_join(synon_retest) %>% 
@@ -287,11 +287,11 @@ tax_combo <- dplyr::filter(tax_acc, rank %in% c("species", "subspecies")) %>% # 
              full_join(new_sp_info, by = "user_supplied_name") %>%  # bind in the new info from auto and manual resolution
              transmute(user_supplied_name,  
                        rank = ifelse(is.na(rank.y), rank.x, rank.y),
-                       status = ifelse(is.na(status.y), status.x, status.y), 
-                       matchtype = ifelse(is.na(matchtype.y), matchtype.x, matchtype.y), 
-                       usagekey = ifelse(is.na(usagekey.y), usagekey.x, usagekey.y),
+                       status, # = ifelse(is.na(status.y), status.x, status.y), 
+                       matchtype, # = ifelse(is.na(matchtype.y), matchtype.x, matchtype.y), 
+                       usagekey, # = ifelse(is.na(usagekey.y), usagekey.x, usagekey.y),
                        synonym = ifelse(is.na(synonym.y), synonym.x, synonym.y),
-                       acceptedusagekey = ifelse(is.na(acceptedusagekey.y), acceptedusagekey.x, acceptedusagekey.y), 
+                       acceptedusagekey, # = ifelse(is.na(acceptedusagekey.y), acceptedusagekey.x, acceptedusagekey.y), 
                        kingdom = ifelse(is.na(kingdom.y), kingdom.x, kingdom.y),
                        phylum = ifelse(is.na(phylum.y), phylum.x, phylum.y), 
                        class = ifelse(is.na(class.y), class.x, class.y), 
@@ -301,7 +301,7 @@ tax_combo <- dplyr::filter(tax_acc, rank %in% c("species", "subspecies")) %>% # 
                        species = ifelse(is.na(species.y), species.x, species.y),
                        genus_species = ifelse(is.na(genus_species.y), genus_species.x, genus_species.y),
                        taxonomy_system = ifelse(is.na(taxonomy_system.y), taxonomy_system.x, taxonomy_system.y),
-                       taxonomic_authority = ifelse(is.na(taxonomic_authority.y), taxonomic_authority.x, taxonomic_authority.y)) %>% 
+                       taxonomic_authority) %>% # = ifelse(is.na(taxonomic_authority.y), taxonomic_authority.x, taxonomic_authority.y)) %>% 
              # a bit more cleaning from Rebecca Turner
              mutate(family = ifelse(family %in% c("Rutelidae","Melolonthidae", "Dynastidae"), "Scarabaeidae", family),
                     family = ifelse(genus == "Dermestes", "Dermestidae", family)) %>% 

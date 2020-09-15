@@ -16,7 +16,12 @@ library(tidyverse) ; library(testthat)
 ```{r}
 # Rebecca's file
 rt_aug_file <- read_csv("nfs_data/data/clean_data/dated_tax_files/taxonomy_table2020Aug12b.csv")
-rt_aug_file <- rt_aug_file %>% arrange(taxon_id) %>% mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE))
+rt_aug_file <- rt_aug_file %>% arrange(taxon_id) %>% 
+               mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE)) %>%
+               mutate(taxon_id = as.double(taxon_id), 
+                      usagekey = as.numeric(usagekey),
+                      synonym = as.logical(synonym), 
+                      acceptedusagekey = as.numeric(acceptedusagekey))
 
 # taxonomy table
 tax_table <- read_csv("nfs_data/data/clean_data/taxonomy_table.csv")
@@ -196,8 +201,8 @@ usn_r <- setdiff(rt_aug_sub$user_supplied_name, tt_sub$user_supplied_name)
 
 ### Comparing families for Rebecca's stuff, especially Coleoptera
 ```{r}
-tt_sub2 <- tax_table %>% select(rank, family, genus_species) %>% filter(rank == "species")
-rt2 <- rt_aug_file %>% select(rank, family , genus_species) %>% filter(rank == "species")
+tt_sub2 <- tax_table %>% select(rank, family, genus_species, user_supplied_name) %>% filter(rank == "species")
+rt2 <- rt_aug_file %>% select(rank, family , genus_species, user_supplied_name) %>% filter(rank == "species")
 
 fj2 <- full_join(tt_sub2, rt2, by = "genus_species") 
 
@@ -216,10 +221,21 @@ fx <- fj2[!(fj2$family.x == fj2$family.y),]
 # Quentin's work-around function  - it works well on spaces!! :-)   
 read.csv.better <- function(file_path, ...) {
                    read.csv_args <- list(...)
-                   txt <- system2("perl", args = paste("-CSDA -plE \"s/\\s/ /g\"", file_path), stdout = TRUE)
+                   txt <- system2("perl", args = paste("-CSDA -plE \"s/\\s/ /g\"",
+                                                       file_path), stdout = TRUE)
                    conn <- textConnection(txt) 
                    do.call(read.csv, args = c(list(file = conn), read.csv_args))
                    }
+
+rt_s1 <- read.csv.better("nfs_data/data/clean_data/dated_tax_files/taxonomy_table2020Aug12b.csv", stringsAsFactors = FALSE) 
+
+tt_sub <- tax_table %>% select(user_supplied_name, rank, order, family, genus_species)
+
+usn_b1 <- setdiff(rt_s1$user_supplied_name, tt_sub$user_supplied_name)
+sort(usn_b1)
+
+usn_b2 <- setdiff(tt_sub$user_supplied_name, rt_s1$user_supplied_name)
+sort(usn_b2)
 ```
 
 ```{r}
@@ -227,7 +243,7 @@ read.csv.better <- function(file_path, ...) {
 readr::guess_encoding("nfs_data/data/clean_data/dated_tax_files/taxonomy_table2020Aug12b.csv")  # useful list of encodings for file
 readr::guess_encoding("nfs_data/data/clean_data/taxonomy_table.csv")
 
-#read.csv(file_to_read, header=TRUE, sep=",", fileEncoding=file_encoding, dec=".")
+# read.csv(file_to_read, header=TRUE, sep=",", fileEncoding=file_encoding, dec=".")
 
 rt_enc2 <- read.csv("nfs_data/data/clean_data/dated_tax_files/taxonomy_table2020Aug12b.csv", fileEncoding = "UTF-8", dec=".")  # doesn't fix parentheses encoding
 rt_enc2$user_supplied_name <- enc2utf8(rt_enc2$user_supplied_name)  # doesn't solve the encoding problem with parentheses
