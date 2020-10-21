@@ -230,6 +230,8 @@ read.csv.better <- function(file_path, ...) {
 
 rt_s1 <- read.csv.better("nfs_data/data/clean_data/dated_tax_files/taxonomy_table2020Oct14.csv", stringsAsFactors = FALSE) 
 
+tax_table <- read_csv("nfs_data/data/clean_data/taxonomy_table.csv")
+
 tt_sub <- tax_table %>% select(user_supplied_name, rank, order, family, genus_species)
 
 usn_b1 <- setdiff(rt_s1$user_supplied_name, tt_sub$user_supplied_name)
