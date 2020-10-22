@@ -260,9 +260,56 @@ usn2 <- setdiff(tt_sub$user_supplied_name, rt_enc2$user_supplied_name)
 sort(usn2)
 ```
 
+# working with Deepa's Files
 
+```{r}
+d_att_tab <- read_csv("./Deepa_Files/attribute_table.csv")
+d_est_tab <- read_csv("./Deepa_Files/EstablishedInsects2020Oct16.csv")
 
+att_tab <- read_csv("nfs_data/data/clean_data/attribute_table.csv")
 
+```
+
+```{r}
+nrow(d_att_tab) 
+nrow(d_est_tab)
+
+d1 <- setdiff(d_att_tab$genus_species, att_tab$genus_species)
+sort(d1)
+
+n1 <- setdiff(att_tab$genus_species, d_att_tab$genus_species)
+sort(n1)
+
+#
+
+at_t <- anti_join(d_att_tab, att_tab, by = "genus_species")
+at_t
+
+# 
+de1 <- setdiff(d_att_tab$genus_species, d_est_tab$genus_species)
+sort(de1)
+
+ne1 <- setdiff(att_tab$genus_species, d_est_tab$genus_species)
+sort(ne1)
+
+at_e <- anti_join(att_tab, d_est_tab, by = "genus_species")
+at_e
+
+```
+
+```{r}
+# look for rows that only have NA in the origin columns
+
+att_origin <- att_tab %>%  
+              select(genus_species, origin_Nearctic, origin_Neotropic,
+                     origin_European_Palearctic, origin_Asian_Palearctic,
+                     origin_Indomalaya, origin_Afrotropic, origin_Australasia,
+                     origin_Oceania) 
+
+actual_na <- att_origin[is.na(att_origin$origin_Nearctic),]
+nrow(actual_na)
+
+```
 
 
 
