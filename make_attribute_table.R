@@ -57,7 +57,8 @@ df_attrib <- attrib_list %>%
                     origin = gsub(" ", ", ", origin),
                     origin = gsub(", , ", ", ", origin),
                     origin = gsub(",, ", ", ", origin) 
-                    ) 
+                    ) %>% 
+             dplyr::rename("user_supplied_name" = "genus_species")
 
 # bring in taxonomic table for order, family, and genus columns
 tax_table <- read_csv("nfs_data/data/clean_data/taxonomy_table.csv")
@@ -88,7 +89,7 @@ coalesce_by_column <- function(df) {
 
 # make attribute table
 df_attrib_o <- df_attrib %>% 
-               left_join(tax_cols, by = c("genus_species" = "user_supplied_name")) %>% # merge in taxonomic info
+               left_join(tax_cols, by = "user_supplied_name") %>% # merge in taxonomic info
                left_join(o_corr_table) %>%  # merge in origin correspondence table
                # add plant feeding attribute column
                mutate(plant_feeding = "Y",
@@ -105,24 +106,24 @@ df_attrib_o <- df_attrib %>%
                       plant_feeding = ifelse((order == "Coleoptera" & family == "Coccinellidae" & genus %in% pf_gen), "Y", plant_feeding),
                       plant_feeding = ifelse((order == "Diptera" & family == "Muscidae" & genus %in% pf_gen), "Y", plant_feeding),
                       plant_feeding = ifelse((order == "Diptera" & family == "Phoridae" & genus %in% pf_gen), "Y", plant_feeding),
-                      plant_feeding = ifelse((order == "Diptera" & family == "Drosophilidae" & genus_species %in% pf_sp), "Y", plant_feeding)
+                      plant_feeding = ifelse((order == "Diptera" & family == "Drosophilidae" & user_supplied_name %in% pf_sp), "Y", plant_feeding)
                       ) %>% 
                # clean up intentional release column
                mutate(intentional_release = ifelse(intentional_release %in% c("N"), "No", 
                                             ifelse(intentional_release %in% c("1", "I"), "Yes", intentional_release))) %>% 
                # add column for whether species every introduced anywhere in world
-               group_by(genus_species) %>% 
+               group_by(user_supplied_name) %>% 
                mutate(ever_introduced_anywhere = ifelse(intentional_release %in% c("Yes", "Eradicated"), "Yes", 
                                                   ifelse(intentional_release %in% c("No"), "No", NA_character_))) %>% 
                ungroup() %>% 
                # coalesce rows to one per species
                select(-origin, -country_nm, -nz_region) %>% 
-               group_by(genus_species) %>%
+               group_by(user_supplied_name) %>%
                summarise_all(coalesce_by_column) %>% 
                ungroup() %>%    
                # arrange rows and columns
-               arrange(order, family, genus, genus_species) %>% 
-               select(taxon_id, genus_species, plant_feeding, order, family, genus, 
+               arrange(order, family, genus, user_supplied_name) %>% 
+               select(taxon_id, user_supplied_name, plant_feeding, order, family, genus, 
                       origin_Nearctic, origin_Neotropic, origin_European_Palearctic, origin_Asian_Palearctic, origin_Indomalaya, 
                       origin_Afrotropic, origin_Australasia, origin_Oceania, everything())
 
