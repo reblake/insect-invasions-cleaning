@@ -12,17 +12,17 @@ str(Origins)
 
 ## Detect occurrences of genus_species in Establishments that do not occur in Origins, and suggest possible matches (likely typos) ##
 # matchNotFound <- !(Establishments$genus_species %in% Origins$genus_species)
-matchNotFound <- !(Establishments$user_supplied_name %in% Origins$genus_species)
+matchNotFound <- !(Establishments$user_supplied_name %in% Origins$user_supplied_name)
 # missingTaxa <- data.frame(genus_species = Establishments[which(matchNotFound),]$genus_species)
 missingTaxa <- data.frame(genus_species = Establishments[which(matchNotFound),]$user_supplied_name)
-missingTaxa$possibleMatch <- Origins[amatch(missingTaxa$genus_species, Origins$genus_species, method="osa", maxDist=4),]$genus_species
+missingTaxa$possibleMatch <- Origins[amatch(missingTaxa$genus_species, Origins$user_supplied_name, method="osa", maxDist=4),]$genus_species
 nApproxMatches = sum(!is.na(missingTaxa$possibleMatch), na.rm = TRUE)
 
 ## Merging establishment file with Origin information ##
 ## Add diagnostic columns ##
 # Estab_with_Origins <- merge(Establishments, Origins, by="genus_species", all=T)
-Estab_with_Origins <- full_join(Establishments, Origins, by = c("user_supplied_name" = "genus_species"))
-Estab_with_Origins$genus_species_mismatch <- Estab_with_Origins$genus_species %in% missingTaxa$genus_species
+Estab_with_Origins <- full_join(Establishments, Origins, by = "user_supplied_name")
+Estab_with_Origins$genus_species_mismatch <- Estab_with_Origins$user_supplied_name %in% missingTaxa$genus_species
 # Estab_with_Origins <- merge(Estab_with_Origins, missingTaxa, by="genus_species", all=T)
 Estab_with_Origins <- full_join(Estab_with_Origins, missingTaxa, by = c("user_supplied_name" = "genus_species"))
 

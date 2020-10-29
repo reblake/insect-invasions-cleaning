@@ -46,17 +46,9 @@ print.data.frame(db_info %>% select(id, title, updated_at), row.names = FALSE)
 ## Raw Data Files
 Raw data files are stored on the shared data directory at SESYNC (`/nfs/insectinvasions-data` or [files.sesync.org](files.sesync.org)).  
 
-* Australia_NON-NATIVE_PLANT_FEEDERS_ants.xlsx
-* Europe_Aug2019.xlsx
-* Galapagos_Seebens_clean_only.xlsx
-* Great Britain_Insect_pests_new_establishments_1970-2013.xlsx
-* Hawaii_establishments_updateOct18.xlsx
-* Japan_establishments_(confidential).xlsx
-* Korea_established_species_from_Lee_etal_2016.xlsx
-* New Zealand_Updated_exotic_insects_2019Oct11.xlsx
-* North America_4.xlsx
-* Ogasawara_establishments(confidential).xlsx
-* Okinawa_establishments(Confidential).xlsx   
+```{r list files, echo=FALSE}
+dir(path="nfs_data/data/raw_data/raw_by_country", pattern='*.xlsx')
+```
 
 ## Cleaning Scripts
 Cleaning scripts are located on SESYNC GitLab in [example_code repository](https://gitlab.sesync.org/insectinvasions/example_code)
@@ -73,6 +65,7 @@ These data tables are the outputs of the cleaning scripts.
 * taxonomy_table.csv
 * occurrence_table.csv
 * attribute_table.csv
+* attribute_table_GBIF.csv
 
 ## Summary of data cleaning/table creation methods
 1. Read in raw data from excel files for each region/country/area of interest using custom separate_taxonomy() function.  This 
@@ -102,12 +95,14 @@ function cleans up column names, and largely cleans up inconsistencies in specie
 
 10. Bring in origin correspondence table (`origin_correspondence_table.xlsx`) to unify origin column entries.  Bring in non-plant-feeding info (`non-plant-feeding_taxa_updatedOct07.xlsx`) and join with this info in a new column.  Write dataframe to CSV file.  
 
+11. Create additional attribute table with GBIF-cleaned taxa names included, and filtered to unique GBIF-cleaned taxa name.  
+
 
 ## Advice on how to bring tables together
 Note: All tables have Taxon ID column, which is unique ID for each cleaned taxa
 
-1. read in taxonomy table and other table of interest
-2. use a join to make the tables into one dataframe
+1. read in taxonomy table and other table of interest such as occurrence table
+2. use a join on taxon_id and/or user_supplied_name to make the tables into one dataframe
 
 
 ```{r knit, echo=FALSE, message=FALSE, error=FALSE, eval=FALSE, include=FALSE}
