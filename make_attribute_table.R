@@ -148,36 +148,39 @@ tax_cols2 <- tax_table %>% select(taxon_id, user_supplied_name, order, family, g
 
 # function to combine rows manually
 coalesce_manual <- function(df) {
-                   # coalesce non-origin columns
-                   orig_class <- class(df)
-                   coal_other <- df %>% 
-                                 select(genus_species, plant_feeding, intentional_release, ever_introduced_anywhere,
-                                        notes, host_type, established_indoors_or_outdoors, host_group, phagy, pest_type, 
-                                        ecozone, current_distribution_cosmopolitan_, phagy_main, feeding_type, feeding_main,
-                                        confirmed_establishment) %>% 
-                                 group_by(genus_species) %>%
-                                 summarize_all(DescTools::Mode, na.rm = TRUE) %>% 
-                                 ungroup()
-                   coal_other <- as(col_other, orig_class)  
-                     
-                   # coalesce origin columns
-                   coal_origin <- df %>% 
-                                  select(genus_species, starts_with("origin_")) %>% 
-                                  mutate_at(vars(origin_Nearctic, origin_Neotropic, origin_European_Palearctic,
-                                                 origin_Asian_Palearctic, origin_Indomalaya, origin_Afrotropic,
-                                                 origin_Australasia, origin_Oceania),
-                                            list(as.numeric)) %>% 
-                                  group_by(genus_species) %>% 
-                                  summarize_all( ~ ifelse((sum(., na.rm = TRUE) %in% c(1:10)), 1, 0)) %>% 
-                                  ungroup()
-  
-                   # bind together origin and other columns
-                   coal_manual <- full_join(coal_other, coal_origin) %>% 
-                                  select(genus_species, origin_Nearctic, origin_Neotropic, origin_European_Palearctic,
-                                         origin_Asian_Palearctic, origin_Indomalaya, origin_Afrotropic,
-                                         origin_Australasia, origin_Oceania, plant_feeding, intentional_release, 
-                                         ever_introduced_anywhere, everything())
+                   # test whether there are multiple rows
+                   if(nrow(df) == 1){coal_manual <- df 
                    
+                   } else {
+                    # coalesce non-origin columns
+                    coal_other <- df %>% 
+                                  select(taxon_id, genus_species, plant_feeding, intentional_release, ever_introduced_anywhere,
+                                         host_type, established_indoors_or_outdoors, host_group, phagy, pest_type, 
+                                         ecozone, current_distribution_cosmopolitan_, phagy_main, feeding_type, feeding_main,
+                                         confirmed_establishment) %>% 
+                                  group_by(genus_species) %>%
+                                  summarize_all(DescTools::Mode, na.rm = TRUE) %>% 
+                                  ungroup()
+                      
+                    # coalesce origin columns
+                    coal_origin <- df %>% 
+                                   select(genus_species, starts_with("origin_")) %>% 
+                                   mutate_at(vars(origin_Nearctic, origin_Neotropic, origin_European_Palearctic,
+                                                  origin_Asian_Palearctic, origin_Indomalaya, origin_Afrotropic,
+                                                  origin_Australasia, origin_Oceania),
+                                             list(as.numeric)) %>% 
+                                   group_by(genus_species) %>% 
+                                   summarize_all( ~ ifelse((sum(., na.rm = TRUE) %in% c(1:10)), 1, 0)) %>% 
+                                   ungroup()
+   
+                    # bind together origin and non-origin columns
+                    coal_manual <- full_join(coal_other, coal_origin) %>% 
+                                   select(genus_species, origin_Nearctic, origin_Neotropic, origin_European_Palearctic,
+                                          origin_Asian_Palearctic, origin_Indomalaya, origin_Afrotropic,
+                                          origin_Australasia, origin_Oceania, plant_feeding, intentional_release, 
+                                          ever_introduced_anywhere, everything())        
+                    }
+                    
                    return(coal_manual)
                          
                    }
@@ -211,10 +214,15 @@ df_attrib_gbif <- df_attrib %>%
                   mutate(ever_introduced_anywhere = ifelse(intentional_release %in% c("Yes", "Eradicated"), "Yes", 
                                                     ifelse(intentional_release %in% c("No"), "No", NA_character_))) %>% 
                   ungroup() %>% 
+                  select(-origin, -country_nm, -nz_region, -user_supplied_name, -order, -family, -genus, -notes) %>% 
+                  # set column types
+                  mutate_at(vars(origin_Nearctic, origin_Neotropic, origin_European_Palearctic,
+                                 origin_Asian_Palearctic, origin_Indomalaya, origin_Afrotropic,
+                                 origin_Australasia, origin_Oceania),
+                            list(as.numeric)) %>%                     
                   # coalesce rows to one per GBIF genus_species
-                  select(-origin, -country_nm, -nz_region, -user_supplied_name, -order, -family, -genus) %>% 
                   group_by(genus_species) %>%
-                  summarise_all(coalesce_manual) %>% 
+                  summarize_all(coalesce_manual) %>% 
                   ungroup() %>%    
                   # arrange rows and columns
                   arrange(genus_species) %>% 
