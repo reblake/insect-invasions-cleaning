@@ -5,7 +5,14 @@
 ####################################################################
 
 ######################
-# a function that cleans the dataframes and separates taxonomy columns
+#' Title: a function that cleans the dataframes and separates taxonomy columns
+#'
+#' @param df_location 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 separate_taxonomy <- function(df_location){
                      # reads the excel file in
                      df <- read_excel(df_location, trim_ws = TRUE, col_types = "text")       
@@ -89,7 +96,14 @@ separate_taxonomy <- function(df_location){
 
 
 ######################
-# get only accepted taxonomic info from GBIF
+#' Title: get only accepted taxonomic info from GBIF
+#'
+#' @param taxa_name 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 get_accepted_taxonomy <- function(taxa_name){
                          # get taxa ids, authoritative names, and names higher up 
                          id <- get_gbifid_(taxa_name)  # gets ID from GBIF
@@ -168,7 +182,15 @@ get_accepted_taxonomy <- function(taxa_name){
 ######################
 
 
-######################
+##########################################################################
+#' Title: function to get taxonomic info from other databases besides GBIF
+#'
+#' @param taxa_name 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 get_more_info <- function(taxa_name){
                  id <- gnr_resolve(names = taxa_name, data_source_ids=c(1,2,3,4,8,12,152,168,169),
                                    canonical=TRUE, best_match_only=TRUE)  
@@ -222,7 +244,15 @@ get_more_info <- function(taxa_name){
                  }
 ######################
 
-######################
+###########################################################
+#' Title: function to read in and separate occurrence info
+#'
+#' @param df_location 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 separate_occurrence <- function(df_location){
                        # reads the excel file in
                        df <- read_excel(df_location, trim_ws = TRUE, col_types = "text") 
@@ -286,7 +316,15 @@ separate_occurrence <- function(df_location){
                        }
 ######################
 
-######################
+############################################################
+#' Title: function to separate taxa attributes info from the raw files
+#'
+#' @param df_location 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 separate_attributes <- function(df_location){
                        # reads the excel file in
                        df <- read_excel(df_location, trim_ws = TRUE, col_types = "text") 
@@ -345,8 +383,15 @@ separate_attributes <- function(df_location){
                        }
                          
                          
-######################
-# get only accepted family info from GBIF
+#############################################################
+#' Title: function to get only accepted family info from GBIF
+#'
+#' @param taxa_name 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 get_accepted_families <- function(taxa_name){
                          # get taxa ids, authoritative names, and names higher up 
                          id <- get_gbifid_(taxa_name)  # gets ID from GBIF
@@ -413,7 +458,74 @@ get_accepted_families <- function(taxa_name){
                        }
 
                          
+#######################################################
+#' Title: function to manually coalesce rows in attribute table   
+#'
+#' @param df 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+coalesce_manual <- function(df) {
+                   # test whether there are multiple rows
+                   if(nrow(df) == 1){coal_manual <- df %>% 
+                                                    mutate_at(vars(taxon_id, genus_species, plant_feeding, 
+                                                                   intentional_release, ever_introduced_anywhere,
+                                                                   host_type, established_indoors_or_outdoors, host_group, 
+                                                                   phagy, pest_type, ecozone, phagy_main, 
+                                                                   current_distribution_cosmopolitan_, feeding_type, feeding_main,
+                                                                   confirmed_establishment),
+                                                              list(as.character)) %>% 
+                                                    mutate_at(vars(origin_Nearctic, origin_Neotropic, origin_European_Palearctic,
+                                                                   origin_Asian_Palearctic, origin_Indomalaya, origin_Afrotropic,
+                                                                   origin_Australasia, origin_Oceania),
+                                                              list(as.numeric))
+                   } else {
+                    # coalesce non-origin columns
+                    coal_other <- df %>% 
+                                  select(taxon_id, genus_species, plant_feeding, intentional_release, ever_introduced_anywhere,
+                                         host_type, established_indoors_or_outdoors, host_group, phagy, pest_type, 
+                                         ecozone, current_distribution_cosmopolitan_, phagy_main, feeding_type, feeding_main,
+                                         confirmed_establishment) %>% 
+                                  group_by(genus_species) %>%
+                                  summarize_all(DescTools::Mode, na.rm = TRUE) %>% 
+                                  ungroup()
+                      
+                    # coalesce origin columns
+                    coal_origin <- df %>% 
+                                   select(genus_species, starts_with("origin_")) %>% 
+                                   mutate_at(vars(origin_Nearctic, origin_Neotropic, origin_European_Palearctic,
+                                                  origin_Asian_Palearctic, origin_Indomalaya, origin_Afrotropic,
+                                                  origin_Australasia, origin_Oceania),
+                                             list(as.numeric)) %>% 
+                                   group_by(genus_species) %>% 
+                                   summarize_all( ~ ifelse((sum(., na.rm = TRUE) %in% c(1:10)), 1, 0)) %>% 
+                                   ungroup()
+   
+                    # bind together origin and non-origin columns
+                    coal_manual <- full_join(coal_other, coal_origin) %>% 
+                                   select(genus_species, origin_Nearctic, origin_Neotropic, origin_European_Palearctic,
+                                          origin_Asian_Palearctic, origin_Indomalaya, origin_Afrotropic,
+                                          origin_Australasia, origin_Oceania, plant_feeding, intentional_release, 
+                                          ever_introduced_anywhere, everything()) %>% 
+                                   mutate_at(vars(taxon_id, genus_species, plant_feeding, 
+                                                  intentional_release, ever_introduced_anywhere,
+                                                  host_type, established_indoors_or_outdoors, host_group, 
+                                                  phagy, pest_type, ecozone, phagy_main, 
+                                                  current_distribution_cosmopolitan_, feeding_type, feeding_main,
+                                                  confirmed_establishment),
+                                             list(as.character)) %>% 
+                                   mutate_at(vars(origin_Nearctic, origin_Neotropic, origin_European_Palearctic,
+                                                  origin_Asian_Palearctic, origin_Indomalaya, origin_Afrotropic,
+                                                  origin_Australasia, origin_Oceania),
+                                             list(as.numeric))
+                    }
+                    
+                   return(coal_manual)
                          
+                   }
+
                          
                          
                          

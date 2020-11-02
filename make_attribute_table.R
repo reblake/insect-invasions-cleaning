@@ -8,7 +8,7 @@
 library(tidyverse) ; library(readxl) ; library(purrr) ; library(DescTools)
 
 # source the custom functions if they aren't in your R environment
-#source("nfs_data/custom_taxonomy_funcs.R")
+# source("nfs_data/custom_taxonomy_funcs.R")
 
 # List all the data files
 file_list <- dir(path="nfs_data/data/raw_data/raw_by_country", pattern='*.xlsx')  # makes list of the files
@@ -64,13 +64,13 @@ df_attrib <- attrib_list %>%
 
 # bring in taxonomic table for order, family, and genus columns
 tax_table <- read_csv("nfs_data/data/clean_data/taxonomy_table.csv")
-tax_cols <- tax_table %>% select(taxon_id, user_supplied_name, order, family, genus)
+tax_cols <- tax_table %>% select(taxon_id, user_supplied_name, order, family, genus, genus_species)
 
 # origin_correspondence_table.xlsx for the 8 biogeographic regions
 o_corr_file <- read_excel("nfs_data/data/raw_data/taxonomic_reference/origin_correspondence_table.xlsx", 
                            trim_ws = TRUE, col_types = "text") 
 o_corr_table <- o_corr_file %>% 
-                mutate_at(vars(starts_with("origin_")), funs(replace(., . %in% c("NA"), NA_character_)))
+                mutate_at(vars(starts_with("origin_")), list(~ replace(., . %in% c("NA"), NA_character_)))
 
 # plant feeding attribute column from the non-plant-feeding_taxa file
 npf_file <- "nfs_data/data/raw_data/taxonomic_reference/non-plant-feeding_taxa_updatedOct07.xlsx"
@@ -88,9 +88,9 @@ pf_gen <- pf_gen %>% pull()
 pf_sp <- pf_sp %>% pull()
 
 # function to collapse rows with multiple entries
-coalesce_by_column <- function(df) {
-                      return(dplyr::coalesce(!!! as.list(df)))
-                      }
+# coalesce_by_column <- function(df) {
+#                       return(dplyr::coalesce(!!! as.list(df)))
+#                       }
 
 # make attribute table
 df_attrib_o <- df_attrib %>% 
@@ -121,11 +121,12 @@ df_attrib_o <- df_attrib %>%
                mutate(ever_introduced_anywhere = ifelse(intentional_release %in% c("Yes", "Eradicated"), "Yes", 
                                                   ifelse(intentional_release %in% c("No"), "No", NA_character_))) %>% 
                ungroup() %>% 
-               # coalesce rows to one per species
                select(-origin, -country_nm, -nz_region, -order, -family, -genus) %>% 
-               group_by(user_supplied_name) %>%
-               summarise_all(coalesce_by_column) %>% 
-               ungroup() %>%    
+               # coalesce rows to one per species
+               group_split(user_supplied_name) %>% 
+               map(~coalesce_manual(.x)) %>%
+               bind_rows() %>% 
+               select(-genus_species) %>% 
                # arrange rows and columns
                arrange(user_supplied_name) %>% 
                select(taxon_id, user_supplied_name, plant_feeding, 
@@ -144,50 +145,9 @@ readr::write_csv(df_attrib_o, "nfs_data/data/clean_data/attribute_table.csv")
 ### Code to filter to unique GBIF genus_species, and do manual coalesce
 ########################################################################
 
-tax_cols2 <- tax_table %>% select(taxon_id, user_supplied_name, order, family, genus, genus_species)
-
-# function to combine rows manually
-coalesce_manual <- function(df) {
-                   # test whether there are multiple rows
-                   if(nrow(df) == 1){coal_manual <- df 
-                   
-                   } else {
-                    # coalesce non-origin columns
-                    coal_other <- df %>% 
-                                  select(taxon_id, genus_species, plant_feeding, intentional_release, ever_introduced_anywhere,
-                                         host_type, established_indoors_or_outdoors, host_group, phagy, pest_type, 
-                                         ecozone, current_distribution_cosmopolitan_, phagy_main, feeding_type, feeding_main,
-                                         confirmed_establishment) %>% 
-                                  group_by(genus_species) %>%
-                                  summarize_all(DescTools::Mode, na.rm = TRUE) %>% 
-                                  ungroup()
-                      
-                    # coalesce origin columns
-                    coal_origin <- df %>% 
-                                   select(genus_species, starts_with("origin_")) %>% 
-                                   mutate_at(vars(origin_Nearctic, origin_Neotropic, origin_European_Palearctic,
-                                                  origin_Asian_Palearctic, origin_Indomalaya, origin_Afrotropic,
-                                                  origin_Australasia, origin_Oceania),
-                                             list(as.numeric)) %>% 
-                                   group_by(genus_species) %>% 
-                                   summarize_all( ~ ifelse((sum(., na.rm = TRUE) %in% c(1:10)), 1, 0)) %>% 
-                                   ungroup()
-   
-                    # bind together origin and non-origin columns
-                    coal_manual <- full_join(coal_other, coal_origin) %>% 
-                                   select(genus_species, origin_Nearctic, origin_Neotropic, origin_European_Palearctic,
-                                          origin_Asian_Palearctic, origin_Indomalaya, origin_Afrotropic,
-                                          origin_Australasia, origin_Oceania, plant_feeding, intentional_release, 
-                                          ever_introduced_anywhere, everything())        
-                    }
-                    
-                   return(coal_manual)
-                         
-                   }
-
 
 df_attrib_gbif <- df_attrib %>% 
-                  left_join(tax_cols2, by = "user_supplied_name") %>% # merge in taxonomic info
+                  left_join(tax_cols, by = "user_supplied_name") %>% # merge in taxonomic info
                   left_join(o_corr_table) %>%  # merge in origin correspondence table
                   # add plant feeding attribute column
                   mutate(plant_feeding = "Y",
@@ -221,9 +181,16 @@ df_attrib_gbif <- df_attrib %>%
                                  origin_Australasia, origin_Oceania),
                             list(as.numeric)) %>%                     
                   # coalesce rows to one per GBIF genus_species
-                  group_by(genus_species) %>%
-                  summarize_all(coalesce_manual) %>% 
-                  ungroup() %>%    
+                  # group_by(genus_species) %>%
+                  # summarize_all(coalesce_manual) %>% 
+                  # ungroup() %>%    
+  
+  
+                  group_split(genus_species) %>% 
+                  map(~coalesce_manual(.x)) %>%
+                  bind_rows() %>% 
+
+
                   # arrange rows and columns
                   arrange(genus_species) %>% 
                   select(taxon_id, genus_species,
