@@ -76,7 +76,7 @@ multiplot(p1, p4, p2, p5, p3, p4, p6 cols=2)
 
 ################################################################################
 ### Revised code based on above code
-### by Rachael Blake 11/2/20202
+### by Rachael Blake 11/2/2020
 ################################################################################
 # Plotting species-area relationships for native and alien Coleoptera
 # load packages
@@ -101,6 +101,7 @@ alien.SF <- alien %>%
             group_by(superfamily) %>%  ## grouping by superfamily
             summarise(across(where(is.double), sum)) ## sum up all in each superfamily in each region
 
+# Organize your data for your plots
 # this creates a data frame  
 area <- c(8.E+06, 2.E+07, 3.E+04, 4.E+05, 1.E+05, 8.E+03, 3.E+05, 1.E+02, 1.E+03, 1.E+07)
 names(area) <- names(alien[,2:11])
