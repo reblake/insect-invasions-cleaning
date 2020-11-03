@@ -103,9 +103,9 @@ alien.SF <- alien %>%
 
 # Organize your data for your plots
 # this creates a data frame  
-area <- c(8.E+06, 2.E+07, 3.E+04, 4.E+05, 1.E+05, 8.E+03, 3.E+05, 1.E+02, 1.E+03, 1.E+07)
-names(area) <- names(alien[,2:11])
-area <- as.data.frame(area) %>% rownames_to_column("name") 
+area <- c(8.E+06, 2.E+07, 3.E+04, 4.E+05, 1.E+05, 8.E+03, 3.E+05, 1.E+02, 1.E+03, 1.E+07) # this creates a character vector
+names(area) <- names(alien[,2:11])  # this names the elements of the character vector with the names of alien
+area <- as.data.frame(area) %>% rownames_to_column("name") # this converts a named character vector to a data frame of 2 columns
 
 alien1 <- alien[,2:11] %>% 
           summarise(across(where(is.double), sum)) %>% 
@@ -130,11 +130,8 @@ alien3 <- alien.SF %>%
           mutate(value_log = log10(value + 1),    # calculate the log10 in your data rather than your plot
                  area_log = log10(area + 1))
   
-  
 
-
-
-# Some reasons why you code didn't work:
+# Some reasons why your code didn't work:
 # ggplot expects a data frame; you gave it a matrix/list
 # you have to put the plus sign at the end of a row, not the beginning
 # you were using different super family names than your data
