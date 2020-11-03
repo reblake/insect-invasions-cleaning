@@ -21,7 +21,7 @@ file.info(tables, extra_cols = FALSE)[,c(1,5)]
 ```
 
 ## Reason for last update:
-Updates to Australian and North American raw datasets, and some new corrections in the fixed file were incorporated.  Re-ran all `make_XXX_table.R` scripts to update tables.  
+Updates to the "fixed" file to correct family names differently assigned by different databases.  Re-ran all `make_XXX_table.R` scripts to update tables.  
 
 ## Taxonomic Database Citations
 ```{r citations, echo=FALSE}
@@ -65,7 +65,7 @@ These data tables are the outputs of the cleaning scripts.
 * taxonomy_table.csv
 * occurrence_table.csv
 * attribute_table.csv
-* attribute_table_GBIF.csv
+* attribute_table_gbif.csv
 
 ## Summary of data cleaning/table creation methods
 1. Read in raw data from excel files for each region/country/area of interest using custom separate_taxonomy() function.  This 
