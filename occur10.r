@@ -88,21 +88,21 @@ library(gridExtra)
 # read numbers of species by family for native assemblages
 native <- read_csv("nfs_data/data/raw_data/Coleoptera_data/NatColAug08.csv")
 colnames(native)  <- c("Family", "Australia", "N_America", "Hawaii", "Japan", "S_Korea",  "Galapagos", "NZ",  "Ogasawara",  "Okinawa", "Europe", "world", "suborder", "superfamily")
-native.SF <- native %>%
-             select(-Family, -suborder) %>% ## delete columns not for use
-             group_by(superfamily) %>%  ## grouping by superfamily
-             summarise(across(where(is.double), sum))  ## sum up all in each superfamily in each region
+# native.SF <- native %>%
+#              select(-Family, -suborder) %>% ## delete columns not for use
+#              group_by(superfamily) %>%  ## grouping by superfamily
+#              summarise(across(where(is.double), sum))  ## sum up all in each superfamily in each region
 
 # read numbers of species by family for non-native assemblages
 alien <- read_csv("nfs_data/data/raw_data/Coleoptera_data/EstColOct16.csv")
 colnames(alien)  <- c("Family", "Australia", "N_America", "Hawaii", "Japan", "S_Korea",  "Galapagos", "NZ",  "Ogasawara",  "Okinawa", "Europe", "all_alien", "suborder", "superfamily")
-alien.SF <- alien %>%
-            select(-Family, -suborder) %>% ## delete columns not for use
-            group_by(superfamily) %>%  ## grouping by superfamily
-            summarise(across(where(is.double), sum)) ## sum up all in each superfamily in each region
+# alien.SF <- alien %>%
+#             select(-Family, -suborder) %>% ## delete columns not for use
+#             group_by(superfamily) %>%  ## grouping by superfamily
+#             summarise(across(where(is.double), sum)) ## sum up all in each superfamily in each region
 
 # Organize your data for your plots
-# this creates a data frame  
+# this creates a data frame of the areas
 area <- c(8.E+06, 2.E+07, 3.E+04, 4.E+05, 1.E+05, 8.E+03, 3.E+05, 1.E+02, 1.E+03, 1.E+07) # this creates a character vector
 names(area) <- names(alien[,2:11])  # this names the elements of the character vector with the names of alien
 area <- as.data.frame(area) %>% rownames_to_column("name") # this converts a named character vector to a data frame of 2 columns
@@ -114,22 +114,32 @@ alien1 <- alien[,2:11] %>%
           mutate(value_log = log10(value),    # calculate the log10 in your data rather than your plot
                  area_log = log10(area))
 
-alien2 <- alien.SF %>%
-          filter(superfamily %in% c("Curculionoidea")) %>% 
-          select(-superfamily, -all_alien) %>% 
-          pivot_longer(everything()) %>% 
-          full_join(area) %>% 
-          mutate(value_log = log10(value),    # calculate the log10 in your data rather than your plot
-                 area_log = log10(area))
+native1 <- native[,2:11] %>% 
+           summarise(across(where(is.double), sum)) %>% 
+           pivot_longer(everything()) %>% 
+           full_join(area) %>% 
+           mutate(value_log = log10(value),    # calculate the log10 in your data rather than your plot
+                  area_log = log10(area))
 
-alien3 <- alien.SF %>%
-          filter(superfamily %in% c("Staphylinoidea")) %>% 
-          select(-superfamily, -all_alien) %>% 
-          pivot_longer(everything()) %>% 
-          full_join(area) %>% 
-          mutate(value_log = log10(value + 1),    # calculate the log10 in your data rather than your plot
-                 area_log = log10(area + 1))
-  
+
+family_function <- function(df, family){
+                    
+                   fam_area <-  df %>%
+                                filter(Family == family) %>% 
+                                select(-suborder, -superfamily, -Family) %>% 
+                                pivot_longer(everything()) %>% 
+                                full_join(area) %>% 
+                                mutate(value_log = log10(value + 1),    # calculate the log10 in your data rather than your plot
+                                area_log = log10(area + 1))   
+                       
+                   return(fam_area)     
+                   
+                   }
+
+alien2 <- family_function(alien, "Curculionidae")
+alien3 <- family_function(alien, "Staphylinidae")
+native2 <- family_function(native, "Curculionidae")
+native3 <- family_function(native, "Staphylinidae")
 
 # Some reasons why your code didn't work:
 # ggplot expects a data frame; you gave it a matrix/list
@@ -157,7 +167,9 @@ make_scatterplots <- function(df){
 a1 <- make_scatterplots(alien1)
 a2 <- make_scatterplots(alien2)
 a3 <- make_scatterplots(alien3)
-
-
-all_panels <- grid.arrange(a1, a2, a3, ncol = 2)
+n1 <- make_scatterplots(native1)
+n2 <- make_scatterplots(native2)
+n3 <- make_scatterplots(native3)
+  
+all_panels <- grid.arrange(n1, a1, n2, a2, n3, a3, ncol = 2)
 
