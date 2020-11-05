@@ -95,7 +95,7 @@ colnames(native)  <- c("Family", "Australia", "N_America", "Hawaii", "Japan", "S
 
 # read numbers of species by family for non-native assemblages
 alien <- read_csv("nfs_data/data/raw_data/Coleoptera_data/EstColOct16.csv")
-colnames(alien)  <- c("Family", "Australia", "N_America", "Hawaii", "Japan", "S_Korea",  "Galapagos", "NZ",  "Ogasawara",  "Okinawa", "Europe", "all_alien", "suborder", "superfamily")
+colnames(alien)  <- c("Family", "Australia", "Europe", "Galapagos", "Hawaii", "Japan", "S_Korea", "NZ", "N_America", "Ogasawara", "Okinawa", "all_alien", "suborder", "superfamily")
 # alien.SF <- alien %>%
 #             select(-Family, -suborder) %>% ## delete columns not for use
 #             group_by(superfamily) %>%  ## grouping by superfamily
@@ -103,7 +103,7 @@ colnames(alien)  <- c("Family", "Australia", "N_America", "Hawaii", "Japan", "S_
 
 # Organize your data for your plots
 # this creates a data frame of the areas
-area <- c(8.E+06, 2.E+07, 3.E+04, 4.E+05, 1.E+05, 8.E+03, 3.E+05, 1.E+02, 1.E+03, 1.E+07) # this creates a character vector
+area <- c(7692024, 10180000, 7880, 28311, 377975, 100210, 268020, 19819000, 106, 1207) # this creates a character vector
 names(area) <- names(alien[,2:11])  # this names the elements of the character vector with the names of alien
 area <- as.data.frame(area) %>% rownames_to_column("name") # this converts a named character vector to a data frame of 2 columns
 
