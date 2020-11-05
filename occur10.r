@@ -130,7 +130,7 @@ family_function <- function(df, family){
                                 pivot_longer(everything()) %>% 
                                 full_join(area) %>% 
                                 mutate(value_log = log10(value + 1),    # calculate the log10 in your data rather than your plot
-                                area_log = log10(area + 1))   
+                                       area_log = log10(area + 1))   
                        
                    return(fam_area)     
                    
