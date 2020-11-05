@@ -83,6 +83,7 @@ multiplot(p1, p4, p2, p5, p3, p4, p6 cols=2)
 library(tidyverse)
 library(ggrepel)
 library(gridExtra)
+library(grid)
 
 # read in the data
 # read numbers of species by family for native assemblages
@@ -148,15 +149,19 @@ native3 <- family_function(native, "Staphylinidae")
 
 # Function to create scatterplots  
 make_scatterplots <- function(df){
-                     # plot_name <- paste0("plot_", deparse(substitute(df)))
+                     model <- lm(df$value ~ df$area, data = df)
                           
-                     p <- ggplot(df, aes_string(x = df$area_log, y = df$value_log)) +
+                     p <- ggplot(df, aes_string(x = df$area, y = df$value)) +
                           geom_point() +
                           geom_text_repel(label = df$name) +  # from the package ggrepel; puts the text in good places
                           geom_smooth(method = lm, se = FALSE) + 
                           theme_classic() + 
-                          xlab(expression(paste("Area (km" ^ "-2", ")"))) + ylab("No. Species")
-                     
+                          xlab(expression(paste("Area (km" ^ "-2", ")"))) + ylab("No. Species") +
+                          scale_x_log10() + 
+                          scale_y_log10(breaks = c(1, 10, 100, 1000, 10000, 100000)) +
+                          annotate("text", -Inf, Inf, hjust = 0, vjust = 1, 
+                                   label = paste0("R-squared = ", summary(model)$r.squared)) 
+            
                      print(paste0("plot_", deparse(substitute(df))))
                      
                      return(p)
