@@ -123,6 +123,14 @@ native1 <- native[,2:11] %>%
                   area_log = log10(area))
 
 
+# fit linear log-log species-area linear models for each assemblage
+mod_alien1 <- lm(alien1$value_log ~ alien1$area_log, data=alien1)
+mod_alien2 <- lm(alien2$value_log ~ alien2$area_log, data=alien2)
+mod_alien3 <- lm(alien2$value_log ~ alien2$area_log, data=alien3)
+mod_native1 <- lm(native1$value_log ~ native1$area_log, data=native1)
+mod_native2 <- lm(native2$value_log ~ native2$area_log, data=native2)
+mod_native3 <- lm(native3$value_log ~ native3$area_log, data=native1)
+
 family_function <- function(df, family){
                     
                    fam_area <-  df %>%
@@ -169,7 +177,7 @@ make_scatterplots <- function(df){
                      }
 
 
-a1 <- make_scatterplots(alien1)
+a1 <- make_scatterplots(alien1)+annotate(paste(toString(summary(mod_alien1)$r.squared), toString(alien1$area_log))
 a2 <- make_scatterplots(alien2)
 a3 <- make_scatterplots(alien3)
 n1 <- make_scatterplots(native1)
