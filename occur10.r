@@ -182,7 +182,8 @@ make_scatterplots <- function(df, title){
                           # annotate("text", x = 1*10^6, y = 40, label = paste0("R-squared = ", round(summary(model)$r.squared, 3))) +
                           labs(title = title)
                      
-                     p <- ggdraw(p) + draw_label(label = paste0("R-squared = ", round(summary(model)$r.squared, 3)), x = 0.85, y = 0.2)
+                     p <- ggdraw(p) + draw_label(label = paste0("R-squared = ", round(summary(model)$r.squared, 3)), x = 0.85, y = 0.2) +
+                          draw_label(label = paste0("Slope = ", round(summary(model)$coefficients[[2]], 6)), x = 0.85, y = 0.25) 
 
                      print(paste0("plot_", deparse(substitute(df))))
                      
@@ -191,7 +192,7 @@ make_scatterplots <- function(df, title){
                      }
 
 
-a1 <- make_scatterplots(alien1, "b)") # +annotate(paste(toString(summary(mod_alien1)$r.squared), toString(alien1$area_log))
+a1 <- make_scatterplots(alien1, "b)") 
 a2 <- make_scatterplots(alien2, "d)")
 a3 <- make_scatterplots(alien3, "f)")
 n1 <- make_scatterplots(native1, "a)")
