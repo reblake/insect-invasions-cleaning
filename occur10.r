@@ -82,7 +82,6 @@ multiplot(p1, p4, p2, p5, p3, p4, p6 cols=2)
 # load packages
 library(tidyverse)
 library(ggrepel)
-library(gridExtra)
 library(grid)
 library(cowplot)
 
@@ -170,8 +169,11 @@ make_scatterplots <- function(df, title){
                           scale_y_log10(breaks = c(1, 10, 100, 1000, 10000, 100000)) +
                           labs(title = title)
                      
-                     p <- ggdraw(p) + draw_label(label = paste0("R-squared = ", round(summary(model)$r.squared, 3)), x = 0.85, y = 0.2) +
-                          draw_label(label = paste0("Slope = ", round(summary(model)$coefficients[[2]], 6)), x = 0.85, y = 0.25) 
+                     p <- ggdraw(p) + 
+                          draw_label(label = paste0("R-squared = ", round(summary(model)$r.squared, 3)), 
+                                     x = 0.85, y = 0.2, size = 9, fontface = "italic") +
+                          draw_label(label = paste0("Slope = ", round(summary(model)$coefficients[[2]], 6)), 
+                                     x = 0.85, y = 0.25, size = 9, fontface = "italic") 
 
                      print(paste0("plot_", deparse(substitute(df))))
                      
@@ -187,5 +189,6 @@ n1 <- make_scatterplots(native1, "a)")
 n2 <- make_scatterplots(native2, "c)")
 n3 <- make_scatterplots(native3, "e)")
   
-all_panels <- grid.arrange(n1, a1, n2, a2, n3, a3, ncol = 2)
+all_panels <- plot_grid(n1, a1, n2, a2, n3, a3, ncol = 2)
 
+save_plot("Coleop_Occur.pdf", all_panels, base_height = 12, base_width = 11)
