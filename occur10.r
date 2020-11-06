@@ -84,6 +84,7 @@ library(tidyverse)
 library(ggrepel)
 library(gridExtra)
 library(grid)
+library(cowplot)
 
 # read in the data
 # read numbers of species by family for native assemblages
@@ -156,7 +157,7 @@ native3 <- family_function(native, "Staphylinidae")
 # you were using different super family names than your data
 
 # Function to create scatterplots  
-make_scatterplots <- function(df){
+make_scatterplots <- function(df, title){
                      model <- lm(df$value ~ df$area, data = df)
                      
                      # grob_text_a <- grobTree(textGrob(paste0("R-squared = ", round(summary(model)$r.squared, 3)),
@@ -171,17 +172,18 @@ make_scatterplots <- function(df){
                           geom_point() +
                           geom_text_repel(label = df$name) +  # from the package ggrepel; puts the text in good places
                           geom_smooth(method = lm, se = FALSE) + 
-                          # annotation_custom(grob_text_a) +
-                          # annotation_custom(grob_text_b) +
-                          annotate("text", x = 1*10^6, y = 20, label = paste0("R-squared = ", round(summary(model)$r.squared, 3))) +
-                          annotate("text", x = 1*10^6, y = 40, label = paste0("R-squared = ", round(summary(model)$r.squared, 3))) +
-                          theme_classic() + 
+                          theme_cowplot() + 
                           xlab(expression(paste("Area (km" ^ "-2", ")"))) + ylab("No. Species") +
                           scale_x_log10() + 
-                          scale_y_log10(breaks = c(1, 10, 100, 1000, 10000, 100000)) #+
-                                               
-   # annotate("text", x = 1, y = 1, label = paste0("R Squared = ", summary(modellm)$r.squared))                       
-            
+                          scale_y_log10(breaks = c(1, 10, 100, 1000, 10000, 100000)) +
+                          # annotation_custom(grob_text_a) +
+                          # annotation_custom(grob_text_b) +
+                          # annotate("text", x = 1*10^6, y = 20, label = paste0("R-squared = ", round(summary(model)$r.squared, 3))) +
+                          # annotate("text", x = 1*10^6, y = 40, label = paste0("R-squared = ", round(summary(model)$r.squared, 3))) +
+                          labs(title = title)
+                     
+                     p <- ggdraw(p) + draw_label(label = paste0("R-squared = ", round(summary(model)$r.squared, 3)), x = 0.85, y = 0.2)
+
                      print(paste0("plot_", deparse(substitute(df))))
                      
                      return(p)
@@ -189,12 +191,12 @@ make_scatterplots <- function(df){
                      }
 
 
-a1 <- make_scatterplots(alien1) # +annotate(paste(toString(summary(mod_alien1)$r.squared), toString(alien1$area_log))
-a2 <- make_scatterplots(alien2)
-a3 <- make_scatterplots(alien3)
-n1 <- make_scatterplots(native1)
-n2 <- make_scatterplots(native2)
-n3 <- make_scatterplots(native3)
+a1 <- make_scatterplots(alien1, "b)") # +annotate(paste(toString(summary(mod_alien1)$r.squared), toString(alien1$area_log))
+a2 <- make_scatterplots(alien2, "d)")
+a3 <- make_scatterplots(alien3, "f)")
+n1 <- make_scatterplots(native1, "a)")
+n2 <- make_scatterplots(native2, "c)")
+n3 <- make_scatterplots(native3, "e)")
   
 all_panels <- grid.arrange(n1, a1, n2, a2, n3, a3, ncol = 2)
 
