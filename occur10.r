@@ -123,13 +123,13 @@ native1 <- native[,2:11] %>%
                   area_log = log10(area))
 
 
-# fit linear log-log species-area linear models for each assemblage
-mod_alien1 <- lm(alien1$value_log ~ alien1$area_log, data=alien1)
-mod_alien2 <- lm(alien2$value_log ~ alien2$area_log, data=alien2)
-mod_alien3 <- lm(alien2$value_log ~ alien2$area_log, data=alien3)
-mod_native1 <- lm(native1$value_log ~ native1$area_log, data=native1)
-mod_native2 <- lm(native2$value_log ~ native2$area_log, data=native2)
-mod_native3 <- lm(native3$value_log ~ native3$area_log, data=native1)
+# # fit linear log-log species-area linear models for each assemblage
+# mod_alien1 <- lm(alien1$value_log ~ alien1$area_log, data=alien1)
+# mod_alien2 <- lm(alien2$value_log ~ alien2$area_log, data=alien2)
+# mod_alien3 <- lm(alien2$value_log ~ alien2$area_log, data=alien3)
+# mod_native1 <- lm(native1$value_log ~ native1$area_log, data=native1)
+# mod_native2 <- lm(native2$value_log ~ native2$area_log, data=native2)
+# mod_native3 <- lm(native3$value_log ~ native3$area_log, data=native1)
 
 family_function <- function(df, family){
                     
@@ -158,17 +158,29 @@ native3 <- family_function(native, "Staphylinidae")
 # Function to create scatterplots  
 make_scatterplots <- function(df){
                      model <- lm(df$value ~ df$area, data = df)
-                          
+                     
+                     # grob_text_a <- grobTree(textGrob(paste0("R-squared = ", round(summary(model)$r.squared, 3)),
+                     #                                  x = 0.9, y = 0.07, 
+                     #                                  gp = gpar(col = "black", fontsize = 11, fontface = "bold")))
+                     #      
+                     # grob_text_b <- grobTree(textGrob(paste0("R-squared = ", round(summary(model)$r.squared, 3)),
+                     #                                  x = 0.9, y = 0.125, 
+                     #                                  gp = gpar(col = "black", fontsize = 11, fontface = "bold")))
+                     
                      p <- ggplot(df, aes_string(x = df$area, y = df$value)) +
                           geom_point() +
                           geom_text_repel(label = df$name) +  # from the package ggrepel; puts the text in good places
                           geom_smooth(method = lm, se = FALSE) + 
+                          # annotation_custom(grob_text_a) +
+                          # annotation_custom(grob_text_b) +
+                          annotate("text", x = 1*10^6, y = 20, label = paste0("R-squared = ", round(summary(model)$r.squared, 3))) +
+                          annotate("text", x = 1*10^6, y = 40, label = paste0("R-squared = ", round(summary(model)$r.squared, 3))) +
                           theme_classic() + 
                           xlab(expression(paste("Area (km" ^ "-2", ")"))) + ylab("No. Species") +
                           scale_x_log10() + 
-                          scale_y_log10(breaks = c(1, 10, 100, 1000, 10000, 100000)) +
-                          annotate("text", -Inf, Inf, hjust = 0, vjust = 1, 
-                                   label = paste0("R-squared = ", summary(model)$r.squared)) 
+                          scale_y_log10(breaks = c(1, 10, 100, 1000, 10000, 100000)) #+
+                                               
+   # annotate("text", x = 1, y = 1, label = paste0("R Squared = ", summary(modellm)$r.squared))                       
             
                      print(paste0("plot_", deparse(substitute(df))))
                      
@@ -177,7 +189,7 @@ make_scatterplots <- function(df){
                      }
 
 
-a1 <- make_scatterplots(alien1)+annotate(paste(toString(summary(mod_alien1)$r.squared), toString(alien1$area_log))
+a1 <- make_scatterplots(alien1) # +annotate(paste(toString(summary(mod_alien1)$r.squared), toString(alien1$area_log))
 a2 <- make_scatterplots(alien2)
 a3 <- make_scatterplots(alien3)
 n1 <- make_scatterplots(native1)
