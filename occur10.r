@@ -159,15 +159,7 @@ native3 <- family_function(native, "Staphylinidae")
 # Function to create scatterplots  
 make_scatterplots <- function(df, title){
                      model <- lm(df$value ~ df$area, data = df)
-                     
-                     # grob_text_a <- grobTree(textGrob(paste0("R-squared = ", round(summary(model)$r.squared, 3)),
-                     #                                  x = 0.9, y = 0.07, 
-                     #                                  gp = gpar(col = "black", fontsize = 11, fontface = "bold")))
-                     #      
-                     # grob_text_b <- grobTree(textGrob(paste0("R-squared = ", round(summary(model)$r.squared, 3)),
-                     #                                  x = 0.9, y = 0.125, 
-                     #                                  gp = gpar(col = "black", fontsize = 11, fontface = "bold")))
-                     
+
                      p <- ggplot(df, aes_string(x = df$area, y = df$value)) +
                           geom_point() +
                           geom_text_repel(label = df$name) +  # from the package ggrepel; puts the text in good places
@@ -176,10 +168,6 @@ make_scatterplots <- function(df, title){
                           xlab(expression(paste("Area (km" ^ "-2", ")"))) + ylab("No. Species") +
                           scale_x_log10() + 
                           scale_y_log10(breaks = c(1, 10, 100, 1000, 10000, 100000)) +
-                          # annotation_custom(grob_text_a) +
-                          # annotation_custom(grob_text_b) +
-                          # annotate("text", x = 1*10^6, y = 20, label = paste0("R-squared = ", round(summary(model)$r.squared, 3))) +
-                          # annotate("text", x = 1*10^6, y = 40, label = paste0("R-squared = ", round(summary(model)$r.squared, 3))) +
                           labs(title = title)
                      
                      p <- ggdraw(p) + draw_label(label = paste0("R-squared = ", round(summary(model)$r.squared, 3)), x = 0.85, y = 0.2) +
