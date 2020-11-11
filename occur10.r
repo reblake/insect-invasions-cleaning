@@ -157,7 +157,7 @@ native3 <- family_function(native, "Staphylinidae")
 
 # Function to create scatterplots  
 make_scatterplots <- function(df, title){
-                     model <- lm(df$value ~ df$area, data = df)
+                     model <- lm(df$value_log ~ df$area_log, data = df)
 
                      p <- ggplot(df, aes_string(x = df$area, y = df$value)) +
                           geom_point() +
