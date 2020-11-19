@@ -1,3 +1,3 @@
-# example_code
+# Cleaning Code
 
-Example code developed for insect invasions SESYNC pursuit for building taxonomic and occurrence tables.  
+Code developed for insect invasions SESYNC pursuit for building cleaned data tables.  
