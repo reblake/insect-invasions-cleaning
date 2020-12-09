@@ -5,7 +5,7 @@ Version: 0.1.0
 Author: Rachael E. Blake
 Maintainer: Rachael E. Blake <rachaelblakemarineecology@gmail.com>
 Description: The functions and code in this package pull taxonomic data from GBIF to clean insect datasets.
-License: What license is it under?
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Depends: 
@@ -15,9 +15,11 @@ Depends:
     readxl,
     purrr
 Imports: 
-    DescTools
-Suggests: 
     taxize,
+    DescTools,
+    stringr,
+    tidyselect
+Suggests: 
     rgbif,
     countrycode,
     testthat
