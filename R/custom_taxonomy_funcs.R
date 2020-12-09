@@ -9,6 +9,10 @@
 #'
 #' @param df_location location of files containing raw insect data
 #'
+#' @import dplyr
+#' @importFrom readxl read_excel
+#' @importFrom tidyselect one_of
+#'
 #' @return dataframe
 #' @export
 #'
@@ -33,7 +37,7 @@ separate_taxonomy <- function(df_location){
 
                      # split off any columns with any taxonomic column names
                      df_2 <- df_1 %>%
-                             select(one_of(tax_class)) %>%
+                             select(tidyselect::one_of(tax_class)) %>%
                              mutate(genus_species = gsub("\\ssp\\s[a-z]+\\s[a-z]+$", "", genus_species, perl=TRUE),
                                     genus_species = gsub("\\ssp\\s[A-Za-z]+\\d+$", "", genus_species, perl=TRUE),
                                     genus_species = gsub("\\ssp\\.\\d\\s\\s[A-Za-z]+$", "", genus_species, perl=TRUE),
@@ -100,6 +104,11 @@ separate_taxonomy <- function(df_location){
 #'
 #' @param taxa_name list of taxa names to search for in GBIF
 #'
+#' @import dplyr
+#' @importFrom taxize get_gbifid_
+#' @importFrom purrr map_df
+#' @importFrom stringr word
+#'
 #' @return dataframe
 #' @export
 #'
@@ -118,7 +127,7 @@ get_accepted_taxonomy <- function(taxa_name){
                                              "note", "familykey", "genuskey")
 
                              # puts ID info into one dataframe
-                             tax_id <- map_df(id, ~as.data.frame(.x), .id="user_supplied_name")
+                             tax_id <- purrr::map_df(id, ~as.data.frame(.x), .id="user_supplied_name")
 
                              id_insect <- tax_id %>%
                                           mutate_if(is.logical, as.character) %>%
@@ -187,6 +196,9 @@ get_accepted_taxonomy <- function(taxa_name){
 #'
 #' @param taxa_name list of taxa names to search for in other databases
 #'
+#' @import dplyr
+#' @importFrom taxize gnr_resolve
+#'
 #' @return dataframe
 #' @export
 #'
@@ -249,13 +261,16 @@ get_more_info <- function(taxa_name){
 #'
 #' @param df_location location of files containing taxa info
 #'
+#' @import dplyr
+#' @importFrom readxl read_excel
+#'
 #' @return dataframe
 #' @export
 #'
 #' @examples
 separate_occurrence <- function(df_location){
                        # reads the excel file in
-                       df <- read_excel(df_location, trim_ws = TRUE, col_types = "text")
+                       df <- readxl::read_excel(df_location, trim_ws = TRUE, col_types = "text")
 
                        # clean up column names, capitalization, etc.
                        df_1 <- df %>%
@@ -321,13 +336,16 @@ separate_occurrence <- function(df_location){
 #'
 #' @param df_location location of file containing taxa info
 #'
+#' @import dplyr
+#' @importFrom readxl read_excel
+#'
 #' @return dataframe
 #' @export
 #'
 #' @examples
 separate_attributes <- function(df_location){
                        # reads the excel file in
-                       df <- read_excel(df_location, trim_ws = TRUE, col_types = "text")
+                       df <- readxl::read_excel(df_location, trim_ws = TRUE, col_types = "text")
 
                        # clean up column names, capitalization, etc.
                        df_1 <- df %>%
@@ -388,6 +406,9 @@ separate_attributes <- function(df_location){
 #'
 #' @param taxa_name genus species name of a taxa
 #'
+#' @import dplyr
+#' @importFrom taxize get_gbifid_
+#'
 #' @return dataframe
 #' @export
 #'
@@ -405,7 +426,7 @@ get_accepted_families <- function(taxa_name){
                                         "kingdomkey", "phylumkey", "classkey", "orderkey", "familykey", "note")
 
                          # puts ID info into one dataframe
-                         tax_id <- map_df(id, ~as.data.frame(.x), .id="user_supplied_name")
+                         tax_id <- purrr::map_df(id, ~as.data.frame(.x), .id="user_supplied_name")
 
                          id_insect <- tax_id %>%
                                       mutate_if(is.logical, as.character) %>%
@@ -462,6 +483,9 @@ get_accepted_families <- function(taxa_name){
 #' coalesce_manual: function to manually coalesce rows in attribute table
 #'
 #' @param df dataframe that may need coalescing
+#'
+#' @import dplyr
+#' @importFrom DescTools Mode
 #'
 #' @return dataframe
 #' @export
@@ -525,9 +549,6 @@ coalesce_manual <- function(df) {
                    return(coal_manual)
 
                    }
-
-
-
 
 
 
