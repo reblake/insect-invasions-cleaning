@@ -17,7 +17,7 @@ vignette: >
 library(tidyverse); library(readxl) ; library(taxize)
 
 # read in the list of beetle families
-floc <- "/nfs/insectinvasions-data/data/raw_data/Copy of number of native species by beetle family in regions2.xlsx"
+floc <- "path/to/your/data/Copy of number of native species by beetle family in regions2.xlsx"
 beetle_fams <- read_excel(floc, trim_ws = TRUE, col_types = "text" )
 bfams_list <- beetle_fams$Family
 ```
@@ -37,5 +37,5 @@ b_acc_df <- beetle_accepted %>%
 
 ### Write out the file
 ```{r eval=FALSE}
-readr::write_csv(b_acc_df, "/nfs/insectinvasions-data/data/clean_data/Coleoptera_accepted_taxonomy.csv")
+readr::write_csv(b_acc_df, "path/to/your/data/Coleoptera_accepted_taxonomy.csv")
 ```

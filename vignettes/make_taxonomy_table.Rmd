@@ -227,7 +227,7 @@ genus_matches <- no_lower_genus %>%
 #####################################
 ```{r eval=FALSE}
 # load file with manual corrections, for example, to family names, synonyms, etc.
-sal_taxa <- read_csv("nfs_data/data/raw_data/taxonomic_reference/genus_only_resolution_FIXED.csv", trim_ws = TRUE,
+sal_taxa <- read_csv("data/taxonomic_reference/genus_only_resolution_FIXED.csv", trim_ws = TRUE,
                      col_types = cols(up_to_date_name = col_character()))
 
 # add manual corrections to correct genus-level only matches
@@ -358,7 +358,7 @@ tax_final <- tax_combo %>%
 #####################################
 ```{r eval=FALSE}
 # write the clean taxonomy table to a CSV file
-readr::write_csv(tax_final, "nfs_data/data/clean_data/taxonomy_table.csv")
+readr::write_csv(tax_final, "path/to/your/data/taxonomy_table.csv")
 ```
 
 

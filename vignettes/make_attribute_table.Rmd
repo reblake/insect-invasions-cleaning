@@ -77,14 +77,14 @@ df_attrib <- attrib_list %>%
 ### bring in taxonomic information
 ```{r eval=FALSE}
 # bring in taxonomic table for order, family, and genus columns
-tax_table <- read_csv("nfs_data/data/clean_data/taxonomy_table.csv")
+tax_table <- read_csv("path/to/your/data/taxonomy_table.csv")
 tax_cols <- tax_table %>% select(taxon_id, user_supplied_name, order, family, genus, genus_species)
 ```
 
 ### bring in origin information
 ```{r eval=FALSE}
 # origin_correspondence_table.xlsx for the 8 biogeographic regions
-o_corr_file <- read_excel("nfs_data/data/raw_data/taxonomic_reference/origin_correspondence_table.xlsx",
+o_corr_file <- read_excel("path/to/your/data/origin_correspondence_table.xlsx",
                            trim_ws = TRUE, col_types = "text")
 o_corr_table <- o_corr_file %>%
                 mutate_at(vars(starts_with("origin_")), list(~ replace(., . %in% c("NA"), NA_character_)))
@@ -93,7 +93,7 @@ o_corr_table <- o_corr_file %>%
 ### bring in plant feeding information
 ```{r eval=FALSE}
 # plant feeding attribute column from the non-plant-feeding_taxa file
-npf_file <- "nfs_data/data/raw_data/taxonomic_reference/non-plant-feeding_taxa_updatedOct07.xlsx"
+npf_file <- "path/to/your/data/non-plant-feeding_taxa_updatedOct07.xlsx"
 npf_ord <- read_excel(npf_file, sheet = 2, trim_ws = TRUE, col_types = "text")
 npf_fams <- read_excel(npf_file, sheet = 3, trim_ws = TRUE, col_types = "text")
 npf_gen <- read_excel(npf_file, sheet = 4, trim_ws = TRUE, col_types = "text")
@@ -156,7 +156,7 @@ df_attrib_o <- df_attrib %>%
 #####################################
 ```{r eval=FALSE}
 # write out the attribute table
-readr::write_csv(df_attrib_o, "nfs_data/data/clean_data/attribute_table.csv")
+readr::write_csv(df_attrib_o, "path/to/your/data/attribute_table.csv")
 ```
 
 
@@ -222,7 +222,7 @@ df_attrib_gbif <- df_attrib %>%
 #####################################
 ```{r eval=FALSE}
 # write out the attribute table
-readr::write_csv(df_attrib_gbif, "nfs_data/data/clean_data/attribute_table_gbif.csv")
+readr::write_csv(df_attrib_gbif, "path/to/your/data/attribute_table_gbif.csv")
 ```
 
 
