@@ -26,8 +26,6 @@ You can install the latest version of insectcleanr from
 ``` r
 # install.packages("devtools")
 devtools::install_github("reblake/insectcleanr")
-#> Skipping install of 'insectcleanr' from a github remote, the SHA1 (d53eeba5) has not changed since last install.
-#>   Use `force = TRUE` to force installation
 ```
 
 ## Example
@@ -61,24 +59,5 @@ taxa_list <- lapply(file_list, separate_taxonomy) %>%
 taxa_accepted <- lapply(taxa_list, get_accepted_taxonomy)
 ```
 
-A full example of code for making a taxonomy table is available in the
-vignettes.
-
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
-
-``` r
-#summary(cars)
-```
-
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date.
-
-You can also embed plots, for example:
-
-``` r
-# plot(pressure)
-```
-
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub\!
+A full workflow for making a taxonomy table and other tables is
+available in the vignettes.
