@@ -11,7 +11,7 @@ maturing](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www
 
 The goal of insectcleanr is to provide functions for building cleaned
 data tables of insect data. This code package was developed for internal
-use by a SESYNC pursuit team by SESYNC data science staff.
+use by a [SESYNC pursuit team](https://www.sesync.org/project/propose-a-pursuit/global-socioeconomic-drivers-of-insect-invasions) by [SESYNC data science staff](https://cyberhelp.sesync.org).
 
 ## Publication and Citation
 
