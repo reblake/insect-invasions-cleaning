@@ -15,8 +15,8 @@ use by a [SESYNC pursuit team](https://www.sesync.org/project/propose-a-pursuit/
 
 ## Publication and Citation
 
-This package has been published on [Zenodo](). This package should be
-cited with the DOI [doi.org/XXXXXXXX](doi.org/XXXXXXXX).
+This package will be published on [Zenodo](). This package should be
+cited with the DOI (when available) [doi.org/XXXXXXXX](doi.org/XXXXXXXX).
 
 ## Installation
 
