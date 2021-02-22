@@ -7,6 +7,8 @@
 
 [![Lifecycle:
 maturing](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
+
+[![DOI](https://zenodo.org/badge/314375251.svg)](https://zenodo.org/badge/latestdoi/314375251)
 <!-- badges: end -->
 
 The goal of insectcleanr is to provide functions for building cleaned
@@ -26,6 +28,18 @@ You can install the latest version of insectcleanr from
 ``` r
 # install.packages("devtools")
 devtools::install_github("reblake/insectcleanr")
+#> data.table (1.13.6  -> 1.14.0 ) [CRAN]
+#> ritis      (0.9.0   -> 1.0.0  ) [CRAN]
+#> DescTools  (0.99.39 -> 0.99.40) [CRAN]
+#>      checking for file ‘/tmp/Rtmp8SUHnw/remotes4b395b356ba9/reblake-insectcleanr-18791ee/DESCRIPTION’ ...  ✓  checking for file ‘/tmp/Rtmp8SUHnw/remotes4b395b356ba9/reblake-insectcleanr-18791ee/DESCRIPTION’
+#>   ─  preparing ‘insectcleanr’:
+#>    checking DESCRIPTION meta-information ...  ✓  checking DESCRIPTION meta-information
+#>   ─  checking for LF line-endings in source and make files and shell scripts
+#>   ─  checking for empty or unneeded directories
+#>   ─  building ‘insectcleanr_0.1.0.tar.gz’
+#>      Warning: invalid uid value replaced by that for user 'nobody'
+#>      
+#> 
 ```
 
 ## Example
