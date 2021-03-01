@@ -17,8 +17,10 @@ use by a [SESYNC pursuit team](https://www.sesync.org/project/propose-a-pursuit/
 
 ## Publication and Citation
 
-This package will be published on [Zenodo](). This package should be
-cited with the DOI (when available) [doi.org/XXXXXXXX](doi.org/XXXXXXXX).
+This package is published on [Zenodo](https://zenodo.org/record/4555787). This package should be
+cited with the [DOI](https://doi.org/10.5281/zenodo.4555787).
+
+Rachael E. Blake, & Rebecca Turner. (2021, February 22). reblake/insectcleanr: Initial release (Version 0.1). Zenodo. http://doi.org/10.5281/zenodo.4555787
 
 ## Installation
 
