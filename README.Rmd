@@ -23,7 +23,9 @@ The goal of insectcleanr is to provide functions for building cleaned data table
 
 ## Publication and Citation
 
-This package has been published on [Zenodo]().  This package should be cited with the DOI [doi.org/XXXXXXXX](doi.org/XXXXXXXX).  
+This package has been published on [Zenodo](https://zenodo.org/record/4555787).  It should be cited with the [DOI](https://doi.org/10.5281/zenodo.4555787) as:  
+
+Rachael E. Blake, & Rebecca Turner. (2021, February 22). reblake/insectcleanr: Initial release (Version 0.1). Zenodo. http://doi.org/10.5281/zenodo.4555787
 
 ## Installation
 
