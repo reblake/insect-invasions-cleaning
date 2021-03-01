@@ -7,20 +7,17 @@
 
 [![Lifecycle:
 maturing](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
-
 [![DOI](https://zenodo.org/badge/314375251.svg)](https://zenodo.org/badge/latestdoi/314375251)
 <!-- badges: end -->
 
 The goal of insectcleanr is to provide functions for building cleaned
 data tables of insect data. This code package was developed for internal
-use by a [SESYNC pursuit team](https://www.sesync.org/project/propose-a-pursuit/global-socioeconomic-drivers-of-insect-invasions) by [SESYNC data science staff](https://cyberhelp.sesync.org).
+use by a SESYNC pursuit team by SESYNC data science staff.
 
 ## Publication and Citation
 
-This package is published on [Zenodo](https://zenodo.org/record/4555787). This package should be
-cited with the [DOI](https://doi.org/10.5281/zenodo.4555787).
-
-Rachael E. Blake, & Rebecca Turner. (2021, February 22). reblake/insectcleanr: Initial release (Version 0.1). Zenodo. http://doi.org/10.5281/zenodo.4555787
+This package has been published on [Zenodo](). This package should be
+cited with the DOI [doi.org/XXXXXXXX](doi.org/XXXXXXXX).
 
 ## Installation
 
@@ -30,18 +27,6 @@ You can install the latest version of insectcleanr from
 ``` r
 # install.packages("devtools")
 devtools::install_github("reblake/insectcleanr")
-#> data.table (1.13.6  -> 1.14.0 ) [CRAN]
-#> ritis      (0.9.0   -> 1.0.0  ) [CRAN]
-#> DescTools  (0.99.39 -> 0.99.40) [CRAN]
-#>      checking for file ‘/tmp/Rtmp8SUHnw/remotes4b395b356ba9/reblake-insectcleanr-18791ee/DESCRIPTION’ ...  ✓  checking for file ‘/tmp/Rtmp8SUHnw/remotes4b395b356ba9/reblake-insectcleanr-18791ee/DESCRIPTION’
-#>   ─  preparing ‘insectcleanr’:
-#>    checking DESCRIPTION meta-information ...  ✓  checking DESCRIPTION meta-information
-#>   ─  checking for LF line-endings in source and make files and shell scripts
-#>   ─  checking for empty or unneeded directories
-#>   ─  building ‘insectcleanr_0.1.0.tar.gz’
-#>      Warning: invalid uid value replaced by that for user 'nobody'
-#>      
-#> 
 ```
 
 ## Example

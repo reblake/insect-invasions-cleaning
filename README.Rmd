@@ -16,9 +16,7 @@ knitr::opts_chunk$set(
 # insectcleanr
 
 <!-- badges: start -->
-[![Lifecycle: maturing](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
-
-[![DOI](https://zenodo.org/badge/314375251.svg)](https://zenodo.org/badge/latestdoi/314375251)
+[![Lifecycle: maturing](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)  [![DOI](https://zenodo.org/badge/314375251.svg)](https://zenodo.org/badge/latestdoi/314375251)
 <!-- badges: end -->
 
 The goal of insectcleanr is to provide functions for building cleaned data tables of insect data.  This code package was developed for internal use by a SESYNC pursuit team by SESYNC data science staff. 
@@ -31,7 +29,7 @@ This package has been published on [Zenodo]().  This package should be cited wit
 
 You can install the latest version of insectcleanr from [GitHub](https://github.com/reblake/insectcleanr) with:
 
-```{r installation, message=FALSE, warning=FALSE}
+```{r installation, message=FALSE, warning=FALSE, eval=FALSE}
 # install.packages("devtools")
 devtools::install_github("reblake/insectcleanr")
 ```
