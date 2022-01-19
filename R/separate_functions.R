@@ -64,6 +64,66 @@ separate_taxonomy_xl <- function(df_location){
                         return(df_2)
                         }
 
+######################
+#' separate_taxonomy_csv: a function that cleans the dataframes and separates taxonomy columns using csv files
+#'
+#' @param df_location
+#'
+#' @import dplyr
+#' @importFrom tidyselect one_of
+#'
+#' @return dataframe
+#' @export
+#'
+#' @examples
+separate_taxonomy_csv <- function(df_location){
+                         # reads the excel file in
+                         df <- read.csv(df_location, trim_ws = TRUE)
+
+                         # clean up column names, capitalization, etc.
+                         df_1 <- df %>%
+                                 # replace " " and "." with "_" in column names
+                                 select_all(~gsub("\\s+|\\.", "_", .)) %>%
+                                 select_all(tolower) %>%  # make all column names lower case
+                                 mutate_all(~gsub("\\b([[:upper:]])([[:upper:]]+)",
+                                                  "\\U\\1\\L\\2", . , perl=TRUE)) %>%
+                                 mutate_all(~gsub("\\.", "", . , perl=TRUE))
+
+                         # define what taxonomic columns might be named
+                         tax_class <- c("kingdom", "phylum", "class", "order", "family",
+                                        "genus", "species", "genus_species", "authority",
+                                        "super_family", "taxonomic_authority", "taxonomy_system")
+
+                         # split off any columns with any taxonomic column names
+                         df_2 <- df_1 %>%
+                                 select(tidyselect::one_of(tax_class)) %>%
+                                 mutate(genus_species = gsub("\\ssp\\s[a-z]+\\s[a-z]+$", "", genus_species, perl=TRUE),
+                                        genus_species = gsub("\\ssp\\s[A-Za-z]+\\d+$", "", genus_species, perl=TRUE),
+                                        genus_species = gsub("\\ssp\\.\\d\\s\\s[A-Za-z]+$", "", genus_species, perl=TRUE),
+                                        genus_species = gsub("\\s[A-Z]\\.[A-Z]\\.[A-Z][a-z]+\\,\\s\\d+$", "", genus_species, perl=TRUE),
+                                        genus_species = gsub("[^\x20-\x7E]sp", "", genus_species, perl=TRUE),
+                                        genus_species = gsub("[^\x20-\x7E]", " ", genus_species, perl=TRUE),
+                                        genus_species = gsub("\\s\\([^()]*\\)", "\\1", genus_species, perl=TRUE),
+                                        genus_species = gsub("\\([A-Z].*$", "\\1", genus_species, perl=TRUE),
+                                        genus_species = gsub("^([A-Z][a-z]+\\s\\S+).*", "\\1", genus_species, perl=TRUE),
+                                        genus_species = gsub("\\sssp\\.\\s[a-z].*$", "", genus_species, perl=TRUE),
+                                        genus_species = gsub("\\ssp\\.[A-Z]$", "", genus_species, perl=TRUE),
+                                        genus_species = gsub("\\ssp[A-Z]$", "", genus_species, perl=TRUE),
+                                        genus_species = gsub("\\ssp(\\.|p|\\d|\\.\\d)$", "", genus_species, perl=TRUE),
+                                        genus_species = gsub("\\.", "", genus_species, perl=TRUE),
+                                        genus_species = gsub("\\sn\\.sp\\.$", "", genus_species, perl=TRUE),
+                                        genus_species = gsub("\\sn$", "", genus_species, perl=TRUE),
+                                        genus_species = gsub("\\s\\ssp$", "", genus_species, perl=TRUE),
+                                        genus_species = gsub("\\d+$", "", genus_species, perl=TRUE),
+                                        genus_species = gsub("\\s\\ss", " ", genus_species, perl=TRUE),
+                                        genus_species = gsub("\\s\\s", " ", genus_species, perl=TRUE),
+                                        genus_species = gsub("\\ssp$", "", genus_species, perl=TRUE)
+                                        )
+
+                         # return df_2
+                         return(df_2)
+                         }
+
 
 ###########################################################
 #' separate_occurrence_xl: function to read in and separate occurrence info using xl files
