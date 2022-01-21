@@ -6,7 +6,7 @@
 #######################################################
 
 ###########################################################
-#' separate_occurrence_csv: function to read in and separate occurrence info using csv files
+#' separate_source_csv: function to read in and separate source info using csv files
 #'
 #' @param df_location location of files containing taxa info
 #'
