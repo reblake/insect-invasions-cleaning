@@ -13,7 +13,8 @@ Depends:
     dplyr,
     magrittr,
     readxl,
-    purrr
+    purrr,
+    googledrive
 Imports: 
     taxize,
     DescTools,

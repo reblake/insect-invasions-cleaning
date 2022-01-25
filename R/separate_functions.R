@@ -16,6 +16,8 @@
 #' @export
 #'
 #' @examples
+#' file_list <- system.file("extdata", "Japan_taxa.xlsx", package = "insectcleanr", mustWork = TRUE)
+#' taxa_list <- lapply(file_list, separate_taxonomy_xl)
 separate_taxonomy_xl <- function(df_location){
                         # reads the excel file in
                         df <- readxl::read_excel(df_location, trim_ws = TRUE, col_types = "text")
