@@ -22,8 +22,9 @@ Imports:
 Suggests: 
     rgbif,
     countrycode,
-    testthat,
+    testthat (>= 3.0.0),
     knitr,
     rmarkdown
 RoxygenNote: 7.1.2
 VignetteBuilder: knitr
+Config/testthat/edition: 3
