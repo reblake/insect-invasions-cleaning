@@ -212,7 +212,7 @@ separate_occurrence_xl <- function(df_location){
 #'
 #' @examples
 separate_occurrence_csv <- function(df_location){
-                          # reads the excel file in
+                          # reads the csv file in
                           df <- read.csv(df_location, strip.white = TRUE)
 
                           # clean up column names, capitalization, etc.
