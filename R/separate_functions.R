@@ -221,17 +221,31 @@ separate_occurrence_csv <- function(df_location){
                                   select_all(~gsub("\\s+|\\.", "_", .)) %>%
                                   select_all(tolower) %>%  # make all column names lower case
                                   mutate_all(~gsub("\\b([[:upper:]])([[:upper:]]+)",
-                                                   "\\U\\1\\L\\2", . , perl=TRUE)) %>%
-                                  mutate_all(~gsub("\\.", "", . , perl=TRUE))
+                                                   "\\U\\1\\L\\2", . , perl=TRUE))
 
-                          # define what taxonomic columns might be named
-                          tax_class <- c("kingdom", "phylum", "class", "order", "family",
-                                         "genus", "species", "genus_species", "authority",
-                                         "super_family", "taxonomic_authority", "taxonomy_system")
+                          # define region
+                          file_name <- sapply(strsplit(as.character(df_location), split="/") , function(x) x[5])
+                          country_nm <- sapply(strsplit(as.character(file_name), split="_") , function(x) x[1])
 
-                          # split off any columns with any taxonomic column names
+
                           df_2 <- df_1 %>%
-                                  select(tidyselect::one_of(tax_class)) %>%
+                                  # split off any columns that are not relevant
+                                  select(-one_of("kingdom", "phylum", "class", "order", "family",
+                                                 "genus", "species", "authority", "super_family",
+                                                 "suborder", "author", "common_name", "taxonomy_system",
+                                                 "phagy", "host_group", "pest_type",
+                                                 "jp_name", "source", "reference", "status", "synonym",
+                                                 "origin2", "tsn", "comment", "original_species_name",
+                                                 "rank", "name_changed___1_yes__0__no_", "phagy_main",
+                                                 "feeding_type", "feeding_main", "size_mm_",
+                                                 "current_distribution_cosmopolitan_", "town", "rege_date_source",
+                                                 "nz_area_code", "life_form", "data_quality", "first_record_orig"
+                                                 )) %>%
+                                  # add the name of the country as a column
+                                  mutate(region = country_nm) %>%
+                                  mutate_all(~gsub("(*UCP)\\s\\+|\\W+$", "", . , perl=TRUE)) %>%
+                                  # replace any non-numerical values in year column with NA
+                                  mutate(year = gsub("u", NA_character_, year, perl=TRUE)) %>%
                                   mutate(genus_species = gsub("\\ssp\\s[a-z]+\\s[a-z]+$", "", genus_species, perl=TRUE),
                                          genus_species = gsub("\\ssp\\s[A-Za-z]+\\d+$", "", genus_species, perl=TRUE),
                                          genus_species = gsub("\\ssp\\.\\d\\s\\s[A-Za-z]+$", "", genus_species, perl=TRUE),
