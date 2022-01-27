@@ -16,7 +16,9 @@ dataframe
 coalesce_manual: function to manually coalesce rows in attribute table
 }
 \examples{
+\dontrun{
 file <- system.file("extdata", "Japan_taxa.xlsx", package = "insectcleanr", mustWork = TRUE)
 data_j <- read_excel(file)
 data_co <- coalesce_manual(data_j)
+}
 }

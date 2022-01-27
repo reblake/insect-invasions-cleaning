@@ -17,9 +17,11 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' # get accepted taxonomic information from GBIF
 #' taxa_list <- c("Abax parallelopipedus", "Hypsicera curvator", "Xylocoris sordidus")
 #' taxa_accepted <- lapply(taxa_list, get_accepted_taxonomy)
+#' }
 get_accepted_taxonomy <- function(taxa_name){
                          # get taxa ids, authoritative names, and names higher up
                          id <- taxize::get_gbifid_(taxa_name)  # gets ID from GBIF

@@ -16,8 +16,10 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' file_list <- system.file("extdata", "Japan_taxa.xlsx", package = "insectcleanr", mustWork = TRUE)
 #' taxa_list <- lapply(file_list, separate_taxonomy_xl)
+#' }
 separate_taxonomy_xl <- function(df_location){
                         # reads the excel file in
                         df <- readxl::read_excel(df_location, trim_ws = TRUE, col_types = "text")
@@ -78,8 +80,10 @@ separate_taxonomy_xl <- function(df_location){
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' file_list <- system.file("extdata", "Japan_taxa.xlsx", package = "insectcleanr", mustWork = TRUE)
 #' taxa_list <- lapply(file_list, separate_taxonomy_csv)
+#' }
 separate_taxonomy_csv <- function(df_location){
                          # reads the excel file in
                          df <- read.csv(df_location, strip.white = TRUE)
@@ -141,8 +145,10 @@ separate_taxonomy_csv <- function(df_location){
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' my_df <- "/path/to/my_df.csv"
 #' attrib <- separate_occurrence_xl(my_df)
+#' }
 separate_occurrence_xl <- function(df_location){
                           # reads the excel file in
                           df <- readxl::read_excel(df_location, trim_ws = TRUE, col_types = "text")
@@ -217,8 +223,10 @@ separate_occurrence_xl <- function(df_location){
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' my_df <- "/path/to/my_df.csv"
 #' attrib <- separate_occurrence_csv(my_df)
+#' }
 separate_occurrence_csv <- function(df_location){
                           # reads the csv file in
                           df <- read.csv(df_location, strip.white = TRUE)
@@ -295,8 +303,10 @@ separate_occurrence_csv <- function(df_location){
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' my_df <- "/path/to/my_df.csv"
 #' attrib <- separate_attributes_xl(my_df)
+#' }
 separate_attributes_xl <- function(df_location){
                           # reads the excel file in
                           df <- readxl::read_excel(df_location, trim_ws = TRUE, col_types = "text")
@@ -367,8 +377,10 @@ separate_attributes_xl <- function(df_location){
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' my_df <- "/path/to/my_df.csv"
 #' attrib <- separate_attributes_csv(my_df)
+#' }
 separate_attributes_csv <- function(df_location){
                            # reads the excel file in
                            df <- read.csv(df_location, strip.white = TRUE)

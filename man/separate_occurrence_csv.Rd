@@ -16,6 +16,8 @@ dataframe
 separate_occurrence_csv: function to read in and separate occurrence info using csv files
 }
 \examples{
+\dontrun{
 my_df <- "/path/to/my_df.csv"
 attrib <- separate_occurrence_csv(my_df)
+}
 }

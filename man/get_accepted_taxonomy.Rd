@@ -16,7 +16,9 @@ dataframe
 get_accepted_taxonomy: get only accepted taxonomic info from GBIF
 }
 \examples{
+\dontrun{
 # get accepted taxonomic information from GBIF
 taxa_list <- c("Abax parallelopipedus", "Hypsicera curvator", "Xylocoris sordidus")
 taxa_accepted <- lapply(taxa_list, get_accepted_taxonomy)
+}
 }

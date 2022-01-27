@@ -16,6 +16,8 @@ dataframe
 separate_attributes_xl: function to separate attribute info for each taxa from the raw files using xl files
 }
 \examples{
+\dontrun{
 my_df <- "/path/to/my_df.csv"
 attrib <- separate_attributes_xl(my_df)
+}
 }
