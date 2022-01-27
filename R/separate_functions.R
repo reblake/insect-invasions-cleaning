@@ -152,8 +152,8 @@ separate_occurrence_xl <- function(df_location){
                                                    "\\U\\1\\L\\2", . , perl=TRUE))
 
                           # define region
-                          file_name <- sapply(strsplit(as.character(df_location), split="/") , function(x) x[5])
-                          country_nm <- sapply(strsplit(as.character(file_name), split="_") , function(x) x[1])
+                          file_name <-  str_extract(df_location, "[^\\/]+$")
+                          country_nm <-  str_extract(file_name, "^[^\\_]+")
 
 
                           df_2 <- df_1 %>%
@@ -226,8 +226,8 @@ separate_occurrence_csv <- function(df_location){
                                                    "\\U\\1\\L\\2", . , perl=TRUE))
 
                           # define region
-                          file_name <- sapply(strsplit(as.character(df_location), split="/") , function(x) x[5])
-                          country_nm <- sapply(strsplit(as.character(file_name), split="_") , function(x) x[1])
+                          file_name <-  str_extract(df_location, "[^\\/]+$")
+                          country_nm <-  str_extract(file_name, "^[^\\_]+")
 
 
                           df_2 <- df_1 %>%
@@ -302,8 +302,8 @@ separate_attributes_xl <- function(df_location){
                                                    "\\U\\1\\L\\2", . , perl=TRUE))
 
                           # define region
-                          file_name <- sapply(strsplit(as.character(df_location), split="/") , function(x) x[5])
-                          country_nm <- sapply(strsplit(as.character(file_name), split="_") , function(x) x[1])
+                          file_name <-  str_extract(df_location, "[^\\/]+$")
+                          country_nm <-  str_extract(file_name, "^[^\\_]+")
 
                           df_2 <- df_1 %>%
                                   # split off any columns that are not relevant
@@ -372,8 +372,8 @@ separate_attributes_csv <- function(df_location){
                                                     "\\U\\1\\L\\2", . , perl=TRUE))
 
                            # define region
-                           file_name <- sapply(strsplit(as.character(df_location), split="/") , function(x) x[5])
-                           country_nm <- sapply(strsplit(as.character(file_name), split="_") , function(x) x[1])
+                           file_name <-  str_extract(df_location, "[^\\/]+$")
+                           country_nm <-  str_extract(file_name, "^[^\\_]+")
 
                            df_2 <- df_1 %>%
                                    # split off any columns that are not relevant
