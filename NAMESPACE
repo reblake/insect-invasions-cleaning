@@ -2,6 +2,7 @@
 
 export("%>%")
 export(coalesce_manual)
+export(coalesce_occur)
 export(get_accepted_families)
 export(get_accepted_taxonomy)
 export(get_more_info)

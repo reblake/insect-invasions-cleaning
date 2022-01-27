@@ -15,3 +15,7 @@ dataframe
 \description{
 separate_taxonomy_csv: a function that cleans the dataframes and separates taxonomy columns using csv files
 }
+\examples{
+file_list <- system.file("extdata", "Japan_taxa.xlsx", package = "insectcleanr", mustWork = TRUE)
+taxa_list <- lapply(file_list, separate_taxonomy_csv)
+}

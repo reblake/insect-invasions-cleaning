@@ -15,3 +15,7 @@ dataframe
 \description{
 separate_occurrence_xl: function to read in and separate occurrence info using xl files
 }
+\examples{
+my_df <- "/path/to/my_df.csv"
+attrib <- separate_occurrence_xl(my_df)
+}
