@@ -1,7 +1,7 @@
 #######################################################
 # separate_source draft start started 21 Jan 2022 by RT
 
-# framework copied from the separate_occurence_csv function in RB's separate_functions.R script in the new-functions branch
+# framework copied from the separate_occurrence_csv function in RB's separate_functions.R script in the main branch
 
 #######################################################
 
@@ -16,8 +16,12 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' my_df <- "/path/to/my_df.csv"
+#' attrib <- separate_occurrence_csv(my_df)
+#' }
 separate_source_csv <- function(df_location){ # RT renamed function
-  # reads the excel file in
+  # reads the csv file in
   df <- read.csv(df_location, strip.white = TRUE)
   
   # clean up column names, capitalization, etc.
@@ -26,12 +30,11 @@ separate_source_csv <- function(df_location){ # RT renamed function
     select_all(~gsub("\\s+|\\.", "_", .)) %>%
     select_all(tolower) %>%  # make all column names lower case
     mutate_all(~gsub("\\b([[:upper:]])([[:upper:]]+)",
-                     "\\U\\1\\L\\2", . , perl=TRUE)) %>%
-    mutate_all(~gsub("\\.", "", . , perl=TRUE))
+                     "\\U\\1\\L\\2", . , perl=TRUE))
   
   # define region
-  file_name <- sapply(strsplit(as.character(df_location), split="/") , function(x) x[5])
-  country_nm <- sapply(strsplit(as.character(file_name), split="_") , function(x) x[1])
+  file_name <-  str_extract(df_location, "[^\\/]+$")
+  country_nm <-  str_extract(file_name, "^[^\\_]+")
   
   # define what relevant columns to select - note that the original column caled genus_species will become the user_supplied_name column
   source_columns <- c("genus_species", "year","intentional_release","eradicated","established_indoors_or_outdoors","source")
@@ -70,4 +73,4 @@ separate_source_csv <- function(df_location){ # RT renamed function
 # return df_2
 return(df_2)
 }
-
+ 
