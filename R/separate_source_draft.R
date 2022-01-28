@@ -20,7 +20,7 @@
 #' my_df <- "/path/to/my_df.csv"
 #' attrib <- separate_occurrence_csv(my_df)
 #' }
-separate_source_csv <- function(df_location){ # RT renamed function
+separate_source_csv <- function(df_location){
   # reads the csv file in
   df <- read.csv(df_location, strip.white = TRUE)
   
