@@ -86,8 +86,7 @@ get_accepted_taxonomy <- function(taxa_name){
                                                                                  stringr::word(taxonomic_authority,-2,-1),
                                                                                  taxonomic_authority)) %>%
                                              # get genus_species
-                                             # mutate(genus_species = ifelse(!exists("species")|is.na("species"),
-                                             #                               paste(genus, "sp"), species))  %>%
+                                             mutate(genus_species = ifelse(!exists("species")|is.na("species"), genus, species))  %>%
                                              mutate(taxonomy_system = "GBIF") %>% # fill in taxonomy system source
                                              select(-scientificname, -canonicalname, -confidence) %>%
                                              mutate_if(is.logical, as.character)
