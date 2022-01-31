@@ -2,9 +2,9 @@ Package: insectcleanr
 Type: Package
 Title: Clean Insect Data
 Version: 0.1.0
-Author: Rachael E. Blake
-Maintainer: Rachael E. Blake <rachaelblakemarineecology@gmail.com>
-Description: The functions and code in this package pull taxonomic data from GBIF to clean insect datasets.
+Authors@R: c(person('Rachael E.', 'Blake', email = 'rachaelblakemarineecology@gmail.com', role = c('aut', 'cre')),
+             person('Rebecca', 'Turner', role = 'ctb'))
+Description: The functions and code in this package pull taxonomic data from GBIF to clean insect taxonomic datasets.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -13,8 +13,7 @@ Depends:
     dplyr,
     magrittr,
     readxl,
-    purrr,
-    googledrive
+    purrr
 Imports: 
     taxize,
     DescTools,

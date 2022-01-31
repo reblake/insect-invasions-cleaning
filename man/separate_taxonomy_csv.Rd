@@ -7,7 +7,7 @@
 separate_taxonomy_csv(df_location)
 }
 \arguments{
-\item{df_location}{}
+\item{df_location}{location of files containing raw insect data}
 }
 \value{
 dataframe
