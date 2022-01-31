@@ -76,7 +76,16 @@ get_accepted_taxonomy <- function(taxa_name){
                                  id_acc <- if (nrow(id_acc)>1) {id_acc[1,]} else {id_acc} # if more than one row, select first row
 
                                  # make df of all taxonomic info from GBIF
-                                 tax_gbif <- id_acc %>%
+                                 # get genus_species column
+                                 if (!("species" %in% colnames(id_acc))) {
+                                       id_acc_gs <- id_acc %>% mutate(genus_species = genus)
+                                     } else if (is.na(id_acc$species)) {
+                                       id_acc_gs <- id_acc %>% mutate(genus_species = genus)
+                                     } else {
+                                       id_acc_gs <- id_acc %>% mutate(genus_species = species)
+                                     }
+
+                                 tax_gbif <- id_acc_gs %>%
                                              # get authority
                                              mutate(taxonomic_authority = ifelse(sapply(strsplit(scientificname, " "), length) == 1,
                                                                                  NA_character_,
@@ -85,8 +94,6 @@ get_accepted_taxonomy <- function(taxa_name){
                                                                                  user_supplied_name %in% sapply(strsplit(taxonomic_authority, " "), unlist),
                                                                                  stringr::word(taxonomic_authority,-2,-1),
                                                                                  taxonomic_authority)) %>%
-                                             # get genus_species
-                                             mutate(genus_species = ifelse(!exists(species)|is.na(species), genus, species))  %>%
                                              mutate(taxonomy_system = "GBIF") %>% # fill in taxonomy system source
                                              select(-scientificname, -canonicalname, -confidence) %>%
                                              mutate_if(is.logical, as.character)
