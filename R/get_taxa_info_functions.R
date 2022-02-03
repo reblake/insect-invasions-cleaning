@@ -119,7 +119,7 @@ get_accepted_taxonomy <- function(taxa_name){
 #'
 #' @examples
 get_more_info <- function(taxa_name){
-                 id <- taxize::gnr_resolve(names = taxa_name, data_source_ids=c(1,2,3,4,8,12,152,168,169),
+                 id <- taxize::gnr_resolve(sci = taxa_name, data_source_ids=c(1,2,3,4,8,12,152,168,169),
                                            canonical=TRUE, best_match_only=TRUE)
 
                  # deal with cases where species name not found
