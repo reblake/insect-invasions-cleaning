@@ -61,7 +61,8 @@ separate_taxonomy_xl <- function(df_location){
                                        genus_species = gsub("\\d+$", "", genus_species, perl=TRUE),
                                        genus_species = gsub("\\s\\ss", " ", genus_species, perl=TRUE),
                                        genus_species = gsub("\\s\\s", " ", genus_species, perl=TRUE),
-                                       genus_species = gsub("\\ssp$", "", genus_species, perl=TRUE)
+                                       genus_species = gsub("\\ssp$", "", genus_species, perl=TRUE),
+                                       genus_species = gsub("[A-Z]\\b", "", genus_species, perl=TRUE)
                                        )
 
                         # return df_2
@@ -126,7 +127,8 @@ separate_taxonomy_csv <- function(df_location){
                                         genus_species = gsub("\\d+$", "", genus_species, perl=TRUE),
                                         genus_species = gsub("\\s\\ss", " ", genus_species, perl=TRUE),
                                         genus_species = gsub("\\s\\s", " ", genus_species, perl=TRUE),
-                                        genus_species = gsub("\\ssp$", "", genus_species, perl=TRUE)
+                                        genus_species = gsub("\\ssp$", "", genus_species, perl=TRUE),
+                                        genus_species = gsub("[A-Z]\\b", "", genus_species, perl=TRUE)
                                         )
 
                          # return df_2
