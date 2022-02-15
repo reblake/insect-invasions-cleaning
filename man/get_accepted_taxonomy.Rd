@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_taxa_info_functions.R
 \name{get_accepted_taxonomy}
 \alias{get_accepted_taxonomy}
-\title{get_accepted_taxonomy: get only accepted taxonomic info from GBIF}
+\title{Get accepted taxonomic information from GBIF}
 \usage{
 get_accepted_taxonomy(taxa_name)
 }
@@ -13,11 +13,15 @@ get_accepted_taxonomy(taxa_name)
 dataframe
 }
 \description{
-get_accepted_taxonomy: get only accepted taxonomic info from GBIF
+If the user supplied taxa is an insect, this function will return the
+best accepted match from GBIF.  If the user supplied taxa is not an
+insect according to GBIF, it will return "id to non-insect species"
+in the genus_species column.  If the user supplied taxa is not found
+in GBIF, this function will return "species not found" in the
+genus_species column.
 }
 \examples{
 \dontrun{
-# get accepted taxonomic information from GBIF
 taxa_list <- c("Abax parallelopipedus", "Hypsicera curvator", "Xylocoris sordidus")
 taxa_accepted <- lapply(taxa_list, get_accepted_taxonomy)
 }

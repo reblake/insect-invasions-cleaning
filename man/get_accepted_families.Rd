@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_taxa_info_functions.R
 \name{get_accepted_families}
 \alias{get_accepted_families}
-\title{get_accepted_families: function to get only accepted family info from GBIF}
+\title{Get only accepted family-level information from GBIF}
 \usage{
 get_accepted_families(taxa_name)
 }
@@ -13,5 +13,5 @@ get_accepted_families(taxa_name)
 dataframe
 }
 \description{
-get_accepted_families: function to get only accepted family info from GBIF
+Get only accepted family-level information from GBIF
 }

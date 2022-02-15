@@ -4,7 +4,14 @@
 ####################################################################
 
 ######################
-#' get_accepted_taxonomy: get only accepted taxonomic info from GBIF
+#' Get accepted taxonomic information from GBIF
+#'
+#' If the user supplied taxa is an insect, this function will return the
+#' best accepted match from GBIF.  If the user supplied taxa is not an
+#' insect according to GBIF, it will return "id to non-insect species"
+#' in the genus_species column.  If the user supplied taxa is not found
+#' in GBIF, this function will return "species not found" in the
+#' genus_species column.
 #'
 #' @param taxa_name list of taxa names to search for in GBIF
 #'
@@ -18,7 +25,6 @@
 #'
 #' @examples
 #' \dontrun{
-#' # get accepted taxonomic information from GBIF
 #' taxa_list <- c("Abax parallelopipedus", "Hypsicera curvator", "Xylocoris sordidus")
 #' taxa_accepted <- lapply(taxa_list, get_accepted_taxonomy)
 #' }
@@ -47,14 +53,14 @@ get_accepted_taxonomy <- function(taxa_name){
                                           dplyr::filter(if(!("class" %in% names(.))) {TRUE} else {
                                                         class == "Insecta"  | is.na(class)})
 
-                             if (nrow(id_insect) == 0) {id_not_insect <- tax_id %>% 
-                                                                         select(user_supplied_name, rank) %>% 
+                             if (nrow(id_insect) == 0) {id_not_insect <- tax_id %>%
+                                                                         select(user_supplied_name, rank) %>%
                                                                          mutate(rank = "unknown",
                                                                                 genus_species = "id to non-insect species") %>%
                                                                                 mutate(taxonomy_system = "GBIF")# fill in taxonomy system source
                                                         # if more than one row, select first row
-                                                        id_not_insect <- if (nrow(id_not_insect)>1) {id_not_insect[1,]} else {id_not_insect} 
-                             
+                                                        id_not_insect <- if (nrow(id_not_insect)>1) {id_not_insect[1,]} else {id_not_insect}
+
                                                         return(id_not_insect)
                                  } else {
                                  # filter dataframe for accepted names
@@ -115,7 +121,7 @@ get_accepted_taxonomy <- function(taxa_name){
 
 
 ##########################################################################
-#' get_more_info: function to get taxonomic info from other databases besides GBIF
+#' Get taxonomic information from other databases besides GBIF
 #'
 #' @param taxa_name list of taxa names to search for in other databases
 #'
@@ -181,7 +187,7 @@ get_more_info <- function(taxa_name){
 
 
 #############################################################
-#' get_accepted_families: function to get only accepted family info from GBIF
+#' Get only accepted family-level information from GBIF
 #'
 #' @param taxa_name genus species name of a taxa
 #'

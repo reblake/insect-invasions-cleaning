@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_taxa_info_functions.R
 \name{get_more_info}
 \alias{get_more_info}
-\title{get_more_info: function to get taxonomic info from other databases besides GBIF}
+\title{Get taxonomic information from other databases besides GBIF}
 \usage{
 get_more_info(taxa_name)
 }
@@ -13,5 +13,5 @@ get_more_info(taxa_name)
 dataframe
 }
 \description{
-get_more_info: function to get taxonomic info from other databases besides GBIF
+Get taxonomic information from other databases besides GBIF
 }
