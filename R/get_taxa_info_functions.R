@@ -47,7 +47,14 @@ get_accepted_taxonomy <- function(taxa_name){
                                           dplyr::filter(if(!("class" %in% names(.))) {TRUE} else {
                                                         class == "Insecta"  | is.na(class)})
 
-                             if (nrow(id_insect) == 0) {id_insect
+                             if (nrow(id_insect) == 0) {id_not_insect <- tax_id %>% 
+                                                                         select(user_supplied_name, rank) %>% 
+                                                                         mutate(rank = "unknown",
+                                                                                genus_species = "id to non-insect species")
+                                                        # if more than one row, select first row
+                                                        id_not_insect <- if (nrow(id_not_insect)>1) {id_not_insect[1,]} else {id_not_insect} 
+                             
+                                                        return(id_not_insect)
                                  } else {
                                  # filter dataframe for accepted names
                                  id_acc <- id_insect %>%
