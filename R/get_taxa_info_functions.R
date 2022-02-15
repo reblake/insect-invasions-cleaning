@@ -50,7 +50,8 @@ get_accepted_taxonomy <- function(taxa_name){
                              if (nrow(id_insect) == 0) {id_not_insect <- tax_id %>% 
                                                                          select(user_supplied_name, rank) %>% 
                                                                          mutate(rank = "unknown",
-                                                                                genus_species = "id to non-insect species")
+                                                                                genus_species = "id to non-insect species") %>%
+                                                                                mutate(taxonomy_system = "GBIF")# fill in taxonomy system source
                                                         # if more than one row, select first row
                                                         id_not_insect <- if (nrow(id_not_insect)>1) {id_not_insect[1,]} else {id_not_insect} 
                              
