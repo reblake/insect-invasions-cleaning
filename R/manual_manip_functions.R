@@ -24,7 +24,7 @@
 coalesce_manual <- function(df) {
                    # test whether there are multiple rows
                    if(nrow(df) == 1){coal_manual <- df %>%
-                                                    mutate_at(vars(taxon_id, genus_species, plant_feeding,
+                                                    mutate_at(vars(genus_species, plant_feeding,
                                                                    intentional_release, ever_introduced_anywhere,
                                                                    host_type, established_indoors_or_outdoors, host_group,
                                                                    phagy, pest_type, ecozone, phagy_main,
@@ -38,7 +38,7 @@ coalesce_manual <- function(df) {
                    } else {
                     # coalesce non-origin columns
                     coal_other <- df %>%
-                                  select(taxon_id, genus_species, plant_feeding, intentional_release, ever_introduced_anywhere,
+                                  select(genus_species, plant_feeding, intentional_release, ever_introduced_anywhere,
                                          host_type, established_indoors_or_outdoors, host_group, phagy, pest_type,
                                          ecozone, current_distribution_cosmopolitan_, phagy_main, feeding_type, feeding_main,
                                          confirmed_establishment) %>%
@@ -63,7 +63,7 @@ coalesce_manual <- function(df) {
                                           origin_Asian_Palearctic, origin_Indomalaya, origin_Afrotropic,
                                           origin_Australasia, origin_Oceania, plant_feeding, intentional_release,
                                           ever_introduced_anywhere, everything()) %>%
-                                   mutate_at(vars(taxon_id, genus_species, plant_feeding,
+                                   mutate_at(vars(genus_species, plant_feeding,
                                                   intentional_release, ever_introduced_anywhere,
                                                   host_type, established_indoors_or_outdoors, host_group,
                                                   phagy, pest_type, ecozone, phagy_main,
