@@ -25,7 +25,7 @@ coalesce_manual <- function(df) {
                    # test whether there are multiple rows
                    if(nrow(df) == 1){coal_manual <- df %>%
                                                     mutate_at(vars(genus_species, plant_feeding,
-                                                                   intentional_release, ever_introduced_anywhere,
+                                                                   #intentional_release, ever_introduced_anywhere,
                                                                    host_type, established_indoors_or_outdoors, host_group,
                                                                    phagy, pest_type, ecozone, phagy_main,
                                                                    current_distribution_cosmopolitan_, feeding_type, feeding_main,
@@ -38,7 +38,7 @@ coalesce_manual <- function(df) {
                    } else {
                     # coalesce non-origin columns
                     coal_other <- df %>%
-                                  select(genus_species, plant_feeding, intentional_release, ever_introduced_anywhere,
+                                  select(genus_species, plant_feeding, #intentional_release, ever_introduced_anywhere,
                                          host_type, established_indoors_or_outdoors, host_group, phagy, pest_type,
                                          ecozone, current_distribution_cosmopolitan_, phagy_main, feeding_type, feeding_main,
                                          confirmed_establishment) %>%
@@ -64,7 +64,7 @@ coalesce_manual <- function(df) {
                                           origin_Australasia, origin_Oceania, plant_feeding, intentional_release,
                                           ever_introduced_anywhere, everything()) %>%
                                    mutate_at(vars(genus_species, plant_feeding,
-                                                  intentional_release, ever_introduced_anywhere,
+                                                  #intentional_release, ever_introduced_anywhere,
                                                   host_type, established_indoors_or_outdoors, host_group,
                                                   phagy, pest_type, ecozone, phagy_main,
                                                   current_distribution_cosmopolitan_, feeding_type, feeding_main,
@@ -98,11 +98,11 @@ coalesce_occur <- function(df) {
                   # test whether there are multiple rows
                   if(nrow(df) == 1) {no_dup <- df %>%
                                                select(genus_species, year, region, country, origin,
-                                                      host_type, ecozone, intentional_release,
+                                                      host_type, ecozone, #intentional_release,
                                                       established_indoors_or_outdoors, confirmed_establishment, eradicated,
                                                       present_status) %>%
                                                mutate_at(vars(genus_species, region, country,
-                                                              host_type, origin, ecozone, intentional_release,
+                                                              host_type, origin, ecozone, #intentional_release,
                                                               established_indoors_or_outdoors, confirmed_establishment,
                                                               eradicated, present_status),
                                                          list(as.character)) %>%
@@ -125,11 +125,11 @@ coalesce_occur <- function(df) {
                                  summarize_all(DescTools::Mode, na.rm = TRUE) %>%
                                  ungroup() %>%
                                  select(genus_species, region, country, origin,
-                                        host_type, ecozone, intentional_release,
+                                        host_type, ecozone, #intentional_release,
                                         established_indoors_or_outdoors, confirmed_establishment, eradicated,
                                         present_status) %>%
                                  mutate_at(vars(genus_species, region, country,
-                                                host_type, origin, ecozone, intentional_release,
+                                                host_type, origin, ecozone, #intentional_release,
                                                 established_indoors_or_outdoors, confirmed_establishment,
                                                 eradicated, present_status),
                                            list(as.character))
@@ -138,7 +138,7 @@ coalesce_occur <- function(df) {
                        no_dup <- gsr_dp %>%
                                  full_join(yr) %>%
                                  select(genus_species, year, region, country, origin,
-                                        host_type, ecozone, intentional_release,
+                                        host_type, ecozone, #intentional_release,
                                         established_indoors_or_outdoors, confirmed_establishment, eradicated,
                                         present_status)
 
