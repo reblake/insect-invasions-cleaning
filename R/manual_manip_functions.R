@@ -61,8 +61,9 @@ coalesce_manual <- function(df) {
                     coal_manual <- full_join(coal_other, coal_origin) %>%
                                    select(genus_species, origin_Nearctic, origin_Neotropic, origin_European_Palearctic,
                                           origin_Asian_Palearctic, origin_Indomalaya, origin_Afrotropic,
-                                          origin_Australasia, origin_Oceania, plant_feeding, intentional_release,
-                                          ever_introduced_anywhere, everything()) %>%
+                                          origin_Australasia, origin_Oceania, plant_feeding, 
+                                          #intentional_release, ever_introduced_anywhere, 
+                                          everything()) %>%
                                    mutate_at(vars(genus_species, plant_feeding,
                                                   #intentional_release, ever_introduced_anywhere,
                                                   host_type, established_indoors_or_outdoors, host_group,
